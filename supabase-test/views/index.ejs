@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0d1117;
+            padding: 20px;
+            color: #e6edf3;
+            min-height: 100vh;
+        }
+        .container { max-width: 1600px; margin: 0 auto; }
+
+        .header {
+            background: #161b22;
+            padding: 16px 24px;
+            border-radius: 12px;
+            border: 1px solid #30363d;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header h1 { font-size: 24px; display: flex; align-items: center; gap: 10px; }
+        .header h1 .badge { font-size: 12px; background: #238636; padding: 2px 10px; border-radius: 12px; }
+        .header .subtitle { color: #8b949e; font-size: 14px; }
+
+        .status-bar {
+            background: #161b22;
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #30363d;
+            border-left: 4px solid #ef4444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .status-bar.connected { border-left-color: #10b981; }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+        .status-dot.online { background: #10b981; animation: pulse 2s infinite; }
+        .status-dot.offline { background: #ef4444; }
+        .status-text.online { color: #10b981; }
+        .status-text.offline { color: #ef4444; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .stats-info { display: flex; gap: 16px; font-size: 13px; color: #8b949e; flex-wrap: wrap; }
+        .stats-info span { background: #21262d; padding: 2px 10px; border-radius: 12px; }
+        .stats-info .stat-number { color: #58a6ff; font-weight: bold; }
+
+        .tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid #21262d; overflow-x: auto; }
+        .tab { padding: 10px 20px; cursor: pointer; color: #8b949e; border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap; font-weight: 500; }
+        .tab:hover { color: #e6edf3; background: #161b22; border-radius: 6px 6px 0 0; }
+        .tab.active { color: #58a6ff; border-bottom-color: #58a6ff; }
+        .tab-content { display: none; padding-top: 20px; }
+        .tab-content.active { display: block; }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 1200px) { .grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+
+        .card { background: #161b22; border-radius: 12px; padding: 20px; border: 1px solid #30363d; margin-bottom: 20px; transition: border-color 0.2s; }
+        .card:hover { border-color: #484f58; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #21262d; flex-wrap: wrap; gap: 8px; }
+        .card-title { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+
+        .btn { padding: 8px 20px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background: #238636; color: white; }
+        .btn-primary:hover { background: #2ea043; }
+        .btn-danger { background: #da3633; color: white; }
+        .btn-danger:hover { background: #f85149; }
+        .btn-warning { background: #d29922; color: white; }
+        .btn-warning:hover { background: #e3b341; }
+        .btn-info { background: #1f6feb; color: white; }
+        .btn-info:hover { background: #388bfd; }
+        .btn-outline { background: transparent; color: #e6edf3; border: 1px solid #30363d; }
+        .btn-outline:hover { background: #21262d; }
+        .btn-sm { padding: 4px 12px; font-size: 12px; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-purple { background: #7c3aed; color: white; }
+        .btn-purple:hover { background: #6d28d9; }
+
+        .plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 12px; }
+        .plan-card { background: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 16px; transition: all 0.2s; position: relative; }
+        .plan-card:hover { border-color: #30363d; transform: translateY(-2px); }
+        .plan-card .name { font-size: 18px; font-weight: 700; color: #e6edf3; }
+        .plan-card .price { font-size: 24px; font-weight: 700; color: #58a6ff; }
+        .plan-card .price span { font-size: 14px; color: #8b949e; font-weight: 400; }
+        .plan-card .features { font-size: 13px; color: #8b949e; margin-top: 8px; }
+        .plan-card .features li { list-style: none; padding: 2px 0; display: flex; align-items: center; gap: 6px; }
+        .plan-card .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .badge-active { background: #23863633; color: #3fb950; }
+        .badge-inactive { background: #da363333; color: #f85149; }
+        .badge-tier-basic { background: #8b949e33; color: #8b949e; }
+        .badge-tier-professional { background: #d2992233; color: #e3b341; }
+        .badge-tier-enterprise { background: #bc8cff33; color: #bc8cff; }
+        .badge-free { background: #23863633; color: #3fb950; }
+        .badge-has-plan { background: #23863633; color: #3fb950; }
+        .badge-no-plan { background: #da363333; color: #f85149; }
+        .badge-trial { background: #d2992233; color: #e3b341; }
+        .badge-expired { background: #da363333; color: #f85149; }
+        .plan-card .recommended { position: absolute; top: -8px; right: 16px; background: #d29922; color: #0d1117; padding: 2px 12px; border-radius: 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+
+        .table-wrapper { overflow-x: auto; }
+        .table { width: 100%; font-size: 13px; border-collapse: collapse; }
+        .table th { text-align: left; padding: 10px 12px; background: #0d1117; font-weight: 600; color: #8b949e; border-bottom: 2px solid #21262d; white-space: nowrap; }
+        .table td { padding: 10px 12px; border-bottom: 1px solid #21262d; vertical-align: middle; }
+        .table tr:hover { background: #161b22; }
+        .table .status-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .status-badge.active { background: #23863633; color: #3fb950; }
+        .status-badge.inactive { background: #da363333; color: #f85149; }
+        .status-badge.trial { background: #d2992233; color: #e3b341; }
+        .status-badge.expired { background: #da363333; color: #f85149; }
+        .status-badge.free { background: #8b949e33; color: #8b949e; }
+
+        .logs-container { background: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 12px; max-height: 400px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.8; }
+        .logs-container .log-entry { display: flex; gap: 12px; padding: 2px 8px; border-radius: 4px; align-items: baseline; }
+        .logs-container .log-entry:hover { background: #161b22; }
+        .log-time { color: #484f58; white-space: nowrap; font-size: 11px; }
+        .log-type { font-weight: 600; padding: 0 8px; border-radius: 3px; font-size: 10px; text-transform: uppercase; white-space: nowrap; }
+        .log-type.info { color: #58a6ff; background: #58a6ff22; }
+        .log-type.success { color: #3fb950; background: #3fb95022; }
+        .log-type.error { color: #f85149; background: #f8514922; }
+        .log-type.warning { color: #e3b341; background: #e3b34122; }
+        .log-type.database { color: #bc8cff; background: #bc8cff22; }
+        .log-type.payment { color: #f778ba; background: #f778ba22; }
+        .log-type.auth { color: #f0883e; background: #f0883e22; }
+
+        .response-body { background: #0d1117; padding: 12px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 12px; max-height: 200px; overflow-y: auto; border: 1px solid #21262d; white-space: pre-wrap; word-break: break-all; margin-top: 12px; display: none; }
+        .response-body.show { display: block; }
+
+        .actions-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+        .toast { padding: 12px 20px; border-radius: 8px; color: white; font-weight: 500; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); animation: slideIn 0.3s ease; min-width: 250px; max-width: 400px; }
+        .toast-success { background: #238636; }
+        .toast-error { background: #da3633; }
+        .toast-warning { background: #d29922; }
+        .toast-info { background: #1f6feb; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 24px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #21262d; }
+        .modal-header h2 { font-size: 20px; }
+        .modal-close { background: none; border: none; color: #8b949e; font-size: 24px; cursor: pointer; }
+        .modal-close:hover { color: #e6edf3; }
+        .modal .form-group { margin-bottom: 12px; }
+        .modal .form-group label { display: block; font-size: 13px; color: #8b949e; margin-bottom: 4px; }
+        .modal .form-group input, .modal .form-group select { width: 100%; padding: 8px 12px; border: 1px solid #30363d; border-radius: 6px; background: #0d1117; color: #e6edf3; font-size: 14px; }
+        .modal .form-group input:focus, .modal .form-group select:focus { outline: none; border-color: #58a6ff; }
+
+        .integration-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; margin: 1px; }
+        .integration-badge.success { background: #23863633; color: #3fb950; }
+        .integration-badge.payment { background: #f778ba33; color: #f778ba; }
+        .integration-badge.database { background: #bc8cff33; color: #bc8cff; }
+        .integration-badge.warning { background: #d2992233; color: #e3b341; }
+
+        .user-search { display: flex; gap: 8px; margin-bottom: 12px; }
+        .user-search input { flex: 1; padding: 8px 12px; border: 1px solid #30363d; border-radius: 6px; background: #0d1117; color: #e6edf3; font-size: 14px; }
+        .user-search input:focus { outline: none; border-color: #58a6ff; }
+        .user-search .search-count { color: #8b949e; font-size: 12px; display: flex; align-items: center; padding: 0 12px; }
+
+        .clickable-id { color: #58a6ff; cursor: pointer; font-family: monospace; font-size: 11px; }
+        .clickable-id:hover { text-decoration: underline; }
+
+        @media (max-width: 768px) { body { padding: 10px; } .header h1 { font-size: 18px; } .stats-info span { font-size: 11px; } .plan-grid { grid-template-columns: 1fr; } .modal { padding: 16px; } }
+
+        .text-center { text-align: center; }
+        .text-muted { color: #8b949e; }
+        .mt-2 { margin-top: 8px; }
+        .mt-4 { margin-top: 16px; }
+        .mb-2 { margin-bottom: 8px; }
+        .flex { display: flex; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .gap-2 { gap: 8px; }
+        .gap-4 { gap: 16px; }
+        .flex-wrap { flex-wrap: wrap; }
+        .items-center { align-items: center; }
+
+        .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: #8b949e; }
+        .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+        .empty-state h3 { color: #e6edf3; margin-bottom: 8px; }
+        .empty-state p { font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="toast-container" id="toastContainer"></div>
+
+        <!-- HEADER -->
+        <div class="header">
+            <div>
+                <h1>🧪 Gerenciador de Planos <span class="badge">v2.0</span></h1>
+                <div class="subtitle">Supabase - Planos, Pagamentos e Usuários</div>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button class="btn btn-outline btn-sm" onclick="refreshAll()">🔄 Recarregar</button>
+                <button class="btn btn-outline btn-sm" onclick="clearLogs()">🧹 Limpar Logs</button>
+            </div>
+        </div>
+
+        <!-- STATUS BAR -->
+        <div class="status-bar" id="statusBar">
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <span class="status-dot" id="statusDot"></span>
+                <span class="status-text" id="statusText">Carregando...</span>
+                <span style="color: #8b949e; font-size: 12px;" id="statusDetail"></span>
+            </div>
+            <div class="stats-info">
+                <span>📦 <span class="stat-number" id="packageCount">0</span> planos</span>
+                <span>👥 <span class="stat-number" id="userCount">0</span> usuários</span>
+                <span>📄 <span class="stat-number" id="subCount">0</span> assinaturas</span>
+                <span>🏷️ <span class="stat-number" id="couponCount">0</span> cupons</span>
+                <span>💰 <span class="stat-number" id="creditCount">0</span> créditos</span>
+            </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="tabs">
+            <div class="tab active" data-tab="plans" onclick="switchTab('plans')">📦 Planos</div>
+            <div class="tab" data-tab="users" onclick="switchTab('users')">👥 Usuários</div>
+            <div class="tab" data-tab="integration" onclick="switchTab('integration')">🔗 Integração</div>
+            <div class="tab" data-tab="logs" onclick="switchTab('logs')">📝 Logs</div>
+        </div>
+
+        <!-- ==================== TAB: PLANOS ==================== -->
+        <div class="tab-content active" id="tab-plans">
+            <div class="grid">
+                <div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">⚡ Ações Rápidas</div>
+                            <span style="font-size: 11px; color: #8b949e;">Gerenciamento de planos</span>
+                        </div>
+                        <div class="actions-group">
+                            <button class="btn btn-success" onclick="seedPlans()">📦 Inserir Planos</button>
+                            <button class="btn btn-danger" onclick="clearPlans()">🗑️ Limpar Planos</button>
+                            <button class="btn btn-warning" onclick="resetPlans()">🔄 Reset Completo</button>
+                            <button class="btn btn-outline" onclick="checkConnection()">🔌 Verificar</button>
+                        </div>
+                        <div id="actionResponse" class="response-body"></div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">📋 Planos Predefinidos</div>
+                            <span style="font-size: 12px; color: #8b949e;"><%= plans.length %> planos</span>
+                        </div>
+                        <div class="plan-grid">
+                            <% plans.forEach((plan, index) => { %>
+                            <div class="plan-card">
+                                <% if (plan.recommended) { %>
+                                <span class="recommended">⭐ Recomendado</span>
+                                <% } %>
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                    <div class="name"><%= plan.name %></div>
+                                    <span class="badge badge-active">Ativo</span>
+                                </div>
+                                <div class="price">$<%= plan.price %> <span>/ <%= plan.billing_type %></span></div>
+                                <div class="features">
+                                    <li>✅ <strong><%= plan.credit_amount || 0 %></strong> Créditos totais</li>
+                                    <li>📄 <strong><%= plan.invoice_credits || 0 %></strong> Invoices</li>
+                                    <li>📊 <strong><%= plan.estimate_credits || 0 %></strong> Estimates</li>
+                                    <li>🤖 <strong><%= plan.ai_estimate_credits || 0 %></strong> AI Estimates</li>
+                                    <li>🎨 <strong><%= plan.template_tier.charAt(0).toUpperCase() + plan.template_tier.slice(1) %></strong> Templates</li>
+                                    <% if (plan.invoice_unlimited) { %>
+                                    <li>🚀 <strong>Invoices Ilimitadas</strong></li>
+                                    <% } %>
+                                    <% if (plan.estimate_unlimited) { %>
+                                    <li>🚀 <strong>Estimates Ilimitados</strong></li>
+                                    <% } %>
+                                    <li>🔬 Trial: <strong><%= plan.trial_days || 7 %></strong> dias</li>
+                                </div>
+                                <div style="margin-top: 8px; font-size: 11px; color: #484f58;">
+                                    <span class="badge badge-tier-<%= plan.template_tier %>"><%= plan.template_tier %></span>
+                                    <span style="margin-left: 8px;"><%= plan.billing_cycle %></span>
+                                </div>
+                            </div>
+                            <% }); %>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">🗄️ Planos no Banco</div>
+                            <button class="btn btn-primary btn-sm" onclick="loadPackages()">🔄 Buscar</button>
+                        </div>
+                        <div id="dbPlansList">
+                            <div class="empty-state">
+                                <div class="icon">📦</div>
+                                <h3>Nenhum plano encontrado</h3>
+                                <p>Clique em "Buscar" para carregar os planos do banco ou "Inserir Planos" para criar</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">📊 Estatísticas</div>
+                            <button class="btn btn-outline btn-sm" onclick="loadStats()">🔄 Atualizar</button>
+                        </div>
+                        <div id="statsDisplay">
+                            <div class="empty-state">
+                                <div class="icon">📊</div>
+                                <p>Carregando estatísticas...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB: USUÁRIOS ==================== -->
+        <div class="tab-content" id="tab-users">
+            <div class="grid">
+                <div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">👥 Gerenciar Usuários</div>
+                            <span style="font-size: 11px; color: #8b949e;">Atribuir, revogar e listar</span>
+                        </div>
+                        <div class="actions-group">
+                            <button class="btn btn-primary" onclick="loadUsers()">📋 Listar Todos</button>
+                            <button class="btn btn-success" onclick="loadUsersWithPlans()">✅ Com Planos</button>
+                            <button class="btn btn-warning" onclick="loadUsersWithoutPlans()">❌ Sem Planos</button>
+                            <button class="btn btn-purple" onclick="openAssignModal()">📦 Atribuir Plano</button>
+                            <button class="btn btn-outline" onclick="loadUserStats()">📊 Estatísticas</button>
+                        </div>
+                        <div id="userActionResponse" class="response-body"></div>
+                    </div>
+
+                    <!-- 🆕 NOVA SEÇÃO: ATIVAR PLANO DIRETO -->
+                    <div class="card" style="border: 2px solid #7c3aed; border-radius: 12px;">
+                        <div class="card-header">
+                            <div class="card-title" style="color: #a78bfa;">⚡ Ativar Plano Direto</div>
+                            <span style="font-size: 11px; color: #8b949e;">Inserir user_id e package_id</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                            <div>
+                                <label style="display: block; font-size: 13px; color: #8b949e; margin-bottom: 4px;">User ID</label>
+                                <input type="text" id="activateUserId" placeholder="uuid do usuário" style="width:100%; padding:8px 12px; border:1px solid #30363d; border-radius:6px; background:#0d1117; color:#e6edf3; font-size:14px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 13px; color: #8b949e; margin-bottom: 4px;">Package ID</label>
+                                <input type="text" id="activatePackageId" placeholder="uuid do pacote" style="width:100%; padding:8px 12px; border:1px solid #30363d; border-radius:6px; background:#0d1117; color:#e6edf3; font-size:14px;">
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                            <div>
+                                <label style="display: block; font-size: 13px; color: #8b949e; margin-bottom: 4px;">Billing Type</label>
+                                <select id="activateBillingType" style="width:100%; padding:8px 12px; border:1px solid #30363d; border-radius:6px; background:#0d1117; color:#e6edf3; font-size:14px;">
+                                    <option value="monthly">Monthly</option>
+                                    <option value="yearly">Yearly</option>
+                                    <option value="one_time">One Time</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 13px; color: #8b949e; margin-bottom: 4px;">Dias</label>
+                                <input type="number" id="activateDays" value="30" min="1" max="365" style="width:100%; padding:8px 12px; border:1px solid #30363d; border-radius:6px; background:#0d1117; color:#e6edf3; font-size:14px;">
+                            </div>
+                            <div style="display: flex; align-items: flex-end;">
+                                <button class="btn btn-purple" onclick="activatePlan()" style="width:100%; justify-content:center;">⚡ Ativar Plano</button>
+                            </div>
+                        </div>
+                        <div id="activateResponse" class="response-body"></div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">📋 Lista de Usuários</div>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <span id="userListCount" style="font-size: 12px; color: #8b949e;">0 usuários</span>
+                                <button class="btn btn-outline btn-sm" onclick="loadUsers()">🔄</button>
+                            </div>
+                        </div>
+                        <div class="user-search">
+                            <input type="text" id="userSearch" placeholder="🔍 Buscar usuário por email ou nome..." oninput="filterUsers()">
+                            <span class="search-count" id="filterCount"></span>
+                        </div>
+                        <div id="usersList" style="max-height: 500px; overflow-y: auto;">
+                            <div class="empty-state">
+                                <div class="icon">👥</div>
+                                <h3>Nenhum usuário carregado</h3>
+                                <p>Clique em "Listar Todos" para carregar os usuários</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">👤 Detalhes do Usuário</div>
+                        </div>
+                        <div id="userDetails">
+                            <div class="empty-state">
+                                <div class="icon">👤</div>
+                                <h3>Selecione um usuário</h3>
+                                <p>Clique em um usuário na lista para ver os detalhes</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">📊 Estatísticas de Usuários</div>
+                            <button class="btn btn-outline btn-sm" onclick="loadUserStats()">🔄 Atualizar</button>
+                        </div>
+                        <div id="userStatsDisplay">
+                            <div class="empty-state">
+                                <div class="icon">📊</div>
+                                <p>Carregando estatísticas...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB: INTEGRAÇÃO ==================== -->
+        <div class="tab-content" id="tab-integration">
+            <div class="grid">
+                <div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">🗄️ Tabelas Integradas</div>
+                            <span style="font-size: 12px; color: #8b949e;">9 tabelas</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <div style="background: #0d1117; padding: 12px; border-radius: 8px; border: 1px solid #21262d;">
+                                <span class="integration-badge success">✅</span>
+                                <strong style="font-size: 13px;">subscription_plans</strong>
+                                <p style="font-size: 11px; color: #8b949e;">Planos disponíveis</p>
+                            </div>
+                            <div style="background: #0d1117; padding: 12px; border-radius: 8px; border: 1px solid #21262d;">
+                                <span class="integration-badge success">✅</span>
+                                <strong style="font-size: 13px;">user_subscriptions</strong>
+                                <p style="font-size: 11px; color: #8b949e;">Assinaturas ativas</p>
+                            </div>
+                            <div style="background: #0d1117; padding: 12px; border-radius: 8px; border: 1px solid #21262d;">
+                                <span class="integration-badge success">✅</span>
+                                <strong style="font-size: 13px;">wallets</strong>
+                                <p style="font-size: 11px; color: #8b949e;">Créditos e limites</p>
+                            </div>
+                            <div style="background: #0d1117; padding: 12px; border-radius: 8px; border: 1px solid #21262d;">
+                                <span class="integration-badge payment">💳</span>
+                                <strong style="font-size: 13px;">payment_transactions</strong>
+                                <p style="font-size: 11px; color: #8b949e;">Transações de pagamento</p>
+                            </div>
+                            <div style="background: #0d1117; padding: 12px; border-radius: 8px; border: 1px solid #21262d;">
+                                <span class="integration-badge database">🗄️</span>
+                                <strong style="font-size: 13px;">profiles</strong>
+                                <p style="font-size: 11px; color: #8b949e;">Perfil do usuário</p>
+                            </div>
+                            <div style="background: #0d1117; padding: 12px; border-radius: 8px; border: 1px solid #21262d; grid-column: span 2;">
+                                <span class="integration-badge success">🏷️</span>
+                                <strong style="font-size: 13px;">coupons</strong>
+                                <p style="font-size: 11px; color: #8b949e;">Cupons de desconto</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">🔄 Fluxo de Integração</div>
+                        </div>
+                        <div style="background: #0d1117; padding: 16px; border-radius: 8px; border: 1px solid #21262d; font-size: 13px; line-height: 2.2;">
+                            <div>1️⃣ <strong>Atribuir Plano</strong> → <code>POST /api/assign-plan</code></div>
+                            <div style="padding-left: 20px; color: #8b949e;">
+                                ↓ <span class="integration-badge success">user_subscriptions</span> 
+                                ↓ <span class="integration-badge success">wallets</span>
+                                ↓ <span class="integration-badge success">profiles</span>
+                            </div>
+                            <div>2️⃣ <strong>Verificar Assinatura</strong> → <code>GET /api/users/:userId/plan</code></div>
+                            <div style="padding-left: 20px; color: #8b949e;">
+                                ↓ <span class="integration-badge success">user_subscriptions</span>
+                                ↓ <span class="integration-badge success">wallets</span>
+                            </div>
+                            <div>3️⃣ <strong>Revogar Plano</strong> → <code>POST /api/users/:userId/revoke-plan</code></div>
+                            <div style="padding-left: 20px; color: #8b949e;">
+                                ↓ <span class="integration-badge warning">user_subscriptions</span> (is_active = false)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">🧪 Teste de Integração</div>
+                        </div>
+                        <div class="form-group">
+                            <label>User ID</label>
+                            <input type="text" id="testUserId" placeholder="uuid do usuário" style="width:100%; padding:8px 12px; border:1px solid #30363d; border-radius:6px; background:#0d1117; color:#e6edf3;">
+                        </div>
+                        <div class="form-group">
+                            <label>Package ID</label>
+                            <input type="text" id="testPackageId" placeholder="uuid do pacote" style="width:100%; padding:8px 12px; border:1px solid #30363d; border-radius:6px; background:#0d1117; color:#e6edf3;">
+                        </div>
+                        <button class="btn btn-success" onclick="testIntegration()">🧪 Testar Integração</button>
+                        <div id="integrationResponse" class="response-body"></div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">📊 Status das Tabelas</div>
+                            <button class="btn btn-outline btn-sm" onclick="loadTableStatus()">🔄 Atualizar</button>
+                        </div>
+                        <div id="tableStatus">
+                            <div class="empty-state">
+                                <div class="icon">📊</div>
+                                <p>Clique em "Atualizar" para ver o status</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB: LOGS ==================== -->
+        <div class="tab-content" id="tab-logs">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">📝 Logs em Tempo Real</div>
+                    <span style="font-size: 12px; color: #8b949e;" id="logCount">0 logs</span>
+                </div>
+                <div class="logs-container" id="logsContainer">
+                    <div style="color: #484f58; text-align: center; padding: 20px;">🔄 Aguardando logs...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ASSIGN PLAN -->
+    <div class="modal-overlay" id="assignModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>📦 Atribuir Plano a Usuário</h2>
+                <button class="modal-close" onclick="closeModal('assignModal')">✕</button>
+            </div>
+            <div class="form-group">
+                <label>User ID</label>
+                <input type="text" id="assignUserId" placeholder="uuid do usuário">
+            </div>
+            <div class="form-group">
+                <label>Package ID</label>
+                <input type="text" id="assignPackageId" placeholder="uuid do pacote">
+            </div>
+            <div class="form-group">
+                <label>Billing Type</label>
+                <select id="assignBillingType">
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                    <option value="one_time">One Time</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Valor (opcional)</label>
+                <input type="number" id="assignAmount" placeholder="Deixe em branco para usar o preço do plano" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>Cupom (opcional)</label>
+                <input type="text" id="assignCoupon" placeholder="BEMVINDO10">
+            </div>
+            <button class="btn btn-success" onclick="assignPlan()">📦 Atribuir Plano</button>
+            <div id="assignResponse" class="response-body"></div>
+        </div>
+    </div>
+
+    <!-- MODAL: REVOKE PLAN -->
+    <div class="modal-overlay" id="revokeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>🚫 Revogar Plano</h2>
+                <button class="modal-close" onclick="closeModal('revokeModal')">✕</button>
+            </div>
+            <p style="color: #8b949e; margin-bottom: 16px;">Tem certeza que deseja revogar o plano deste usuário?</p>
+            <div class="form-group">
+                <label>Motivo (opcional)</label>
+                <input type="text" id="revokeReason" placeholder="Motivo da revogação">
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-danger" onclick="confirmRevoke()">🚫 Revogar</button>
+                <button class="btn btn-outline" onclick="closeModal('revokeModal')">Cancelar</button>
+            </div>
+            <div id="revokeResponse" class="response-body"></div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // TOASTS
+        // ============================================================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // ============================================================
+        // TABS
+        // ============================================================
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            
+            if (tab === 'users') { loadUsers(); loadUserStats(); }
+            if (tab === 'integration') { loadTableStatus(); }
+            if (tab === 'plans') { loadPackages(); loadStats(); }
+        }
+
+        // ============================================================
+        // MODALS
+        // ============================================================
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        // ============================================================
+        // LOGS SSE
+        // ============================================================
+        let logCount = 0;
+        let eventSource = null;
+
+        function connectLogs() {
+            try {
+                eventSource = new EventSource('/api/logs/stream');
+                eventSource.onmessage = function(event) {
+                    try {
+                        const log = JSON.parse(event.data);
+                        addLogToUI(log);
+                    } catch (e) {}
+                };
+                eventSource.onerror = function() { setTimeout(connectLogs, 3000); };
+            } catch (error) { setTimeout(connectLogs, 5000); }
+        }
+
+        function addLogToUI(log) {
+            const container = document.getElementById('logsContainer');
+            if (container.querySelector('.empty-state')) {
+                container.innerHTML = '';
+            }
+            const time = new Date(log.timestamp).toLocaleTimeString('pt-BR');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `
+                <span class="log-time">${time}</span>
+                <span class="log-type ${log.type || 'info'}">${(log.type || 'info').toUpperCase()}</span>
+                <span>${log.message}</span>
+            `;
+            container.appendChild(entry);
+            container.scrollTop = container.scrollHeight;
+            logCount++;
+            document.getElementById('logCount').textContent = logCount + ' logs';
+            while (container.children.length > 200) {
+                container.removeChild(container.firstChild);
+            }
+        }
+
+        function clearLogs() {
+            const container = document.getElementById('logsContainer');
+            container.innerHTML = '<div style="color: #484f58; text-align: center; padding: 20px;">🔄 Aguardando logs...</div>';
+            logCount = 0;
+            document.getElementById('logCount').textContent = '0 logs';
+            fetch('/api/logs/clear', { method: 'DELETE' });
+        }
+
+        // ============================================================
+        // STATUS
+        // ============================================================
+        function updateStatus(connected, message, detail) {
+            const bar = document.getElementById('statusBar');
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            const detailEl = document.getElementById('statusDetail');
+
+            bar.className = 'status-bar' + (connected ? ' connected' : '');
+            dot.className = 'status-dot ' + (connected ? 'online' : 'offline');
+            text.className = 'status-text ' + (connected ? 'online' : 'offline');
+            text.textContent = message;
+            detailEl.textContent = detail || '';
+        }
+
+        function checkConnection() {
+            showToast('🔍 Verificando conexão...', 'info');
+            fetch('/api/status')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success && data.data.connected) {
+                        updateStatus(true, '✅ Conectado', data.data.url || '');
+                        showToast('✅ Conexão OK!', 'success');
+                    } else {
+                        updateStatus(false, '❌ Desconectado', data.data.error || '');
+                        showToast('❌ Falha na conexão', 'error');
+                    }
+                })
+                .catch(() => {
+                    updateStatus(false, '❌ Erro', '');
+                    showToast('❌ Erro ao verificar', 'error');
+                });
+        }
+
+        // ============================================================
+        // API CALLS
+        // ============================================================
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            const options = { method, headers: { 'Content-Type': 'application/json' } };
+            if (body) options.body = JSON.stringify(body);
+            try {
+                const response = await fetch(endpoint, options);
+                const data = await response.json();
+                return { status: response.status, ok: response.ok, data };
+            } catch (error) {
+                return { status: 0, ok: false, data: { error: error.message } };
+            }
+        }
+
+        function copyTextFrom(text) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast('✅ ID copiado: ' + text.substring(0,12) + '...', 'success');
+                });
+            } else {
+                const input = document.createElement('input');
+                input.value = text;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                document.body.removeChild(input);
+                showToast('✅ ID copiado', 'success');
+            }
+        }
+
+        function showResponse(elementId, data, status) {
+            const el = document.getElementById(elementId);
+            el.className = 'response-body show';
+            el.textContent = JSON.stringify(data, null, 2);
+        }
+
+        function hideResponse(elementId) {
+            const el = document.getElementById(elementId);
+            el.className = 'response-body';
+            el.textContent = '';
+        }
+
+        // ============================================================
+        // FUNÇÕES DE PLANOS
+        // ============================================================
+        async function seedPlans() {
+            if (!confirm('📦 Inserir todos os planos predefinidos?')) return;
+            showToast('📦 Inserindo planos...', 'info');
+            const result = await apiCall('/api/packages/seed', 'POST');
+            showResponse('actionResponse', result.data, result.status);
+            if (result.ok) {
+                showToast('✅ Planos inseridos!', 'success');
+                loadPackages();
+                loadStats();
+            } else {
+                showToast('❌ Erro: ' + (result.data.error || 'Erro'), 'error');
+            }
+        }
+
+        async function clearPlans() {
+            if (!confirm('⚠️ Isso vai REMOVER TODOS os planos do banco. Continuar?')) return;
+            showToast('🗑️ Removendo planos...', 'warning');
+            const result = await apiCall('/api/packages/clear', 'DELETE');
+            showResponse('actionResponse', result.data, result.status);
+            if (result.ok) {
+                showToast('✅ Planos removidos!', 'success');
+                loadPackages();
+                loadStats();
+            } else {
+                showToast('❌ Erro: ' + (result.data.error || 'Erro'), 'error');
+            }
+        }
+
+        async function resetPlans() {
+            if (!confirm('⚠️ Isso vai LIMPAR e REINSERIR todos os planos. Continuar?')) return;
+            showToast('🔄 Resetando planos...', 'warning');
+            const result = await apiCall('/api/packages/reset', 'POST');
+            showResponse('actionResponse', result.data, result.status);
+            if (result.ok) {
+                showToast('✅ Reset completo!', 'success');
+                loadPackages();
+                loadStats();
+            } else {
+                showToast('❌ Erro: ' + (result.data.error || 'Erro'), 'error');
+            }
+        }
+
+        async function loadPackages() {
+            const result = await apiCall('/api/packages');
+            const container = document.getElementById('dbPlansList');
+            if (!result.ok) {
+                container.innerHTML = `<div class="empty-state"><div class="icon">❌</div><p style="color:#f85149;">Erro: ${result.data.error || 'Erro'}</p></div>`;
+                return;
+            }
+            const data = result.data.data;
+            if (!data || data.length === 0) {
+                container.innerHTML = `<div class="empty-state"><div class="icon">📦</div><h3>Nenhum plano no banco</h3><p>Clique em "Inserir Planos" para criar</p></div>`;
+                document.getElementById('packageCount').textContent = '0';
+                return;
+            }
+            let html = `<div class="table-wrapper"><table class="table">
+                <thead><tr>
+                    <th>Nome</th>
+                    <th>Preço</th>
+                    <th>Tipo</th>
+                    <th>Tier</th>
+                    <th>Créditos</th>
+                    <th>ID</th>
+                </tr></thead><tbody>`;
+            data.forEach(p => {
+                html += `<tr>
+                    <td><strong>${p.name}</strong></td>
+                    <td>$${p.price}</td>
+                    <td>${p.billing_type || 'N/A'}</td>
+                    <td><span class="badge badge-tier-${p.template_tier}">${p.template_tier}</span></td>
+                    <td>${p.credit_amount || 0}</td>
+                    <td><span class="clickable-id" onclick="copyTextFrom('${p.id}')">${p.id.substring(0,8)}...</span></td>
+                </tr>`;
+            });
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+            document.getElementById('packageCount').textContent = data.length;
+        }
+
+        // ============================================================
+        // FUNÇÕES DE USUÁRIOS
+        // ============================================================
+        let allUsers = [];
+
+        async function loadUsers() {
+            showToast('👥 Carregando usuários...', 'info');
+            const result = await apiCall('/api/users');
+            if (!result.ok) {
+                document.getElementById('usersList').innerHTML = `<div class="empty-state"><div class="icon">❌</div><p style="color:#f85149;">Erro: ${result.data.error || 'Erro'}</p></div>`;
+                return;
+            }
+            allUsers = result.data.data.users || [];
+            renderUsers(allUsers);
+            document.getElementById('userListCount').textContent = allUsers.length + ' usuários';
+            showToast(`✅ ${allUsers.length} usuários carregados`, 'success');
+        }
+
+        async function loadUsersWithPlans() {
+            showToast('✅ Carregando usuários com planos...', 'info');
+            const result = await apiCall('/api/users/with-plans');
+            if (!result.ok) {
+                document.getElementById('usersList').innerHTML = `<div class="empty-state"><div class="icon">❌</div><p style="color:#f85149;">Erro: ${result.data.error || 'Erro'}</p></div>`;
+                return;
+            }
+            const users = result.data.data.users || [];
+            renderUsers(users.map(u => ({
+                ...u,
+                has_plan: true,
+                user_id: u.user_id,
+                email: u.email,
+                full_name: u.full_name,
+                company_name: u.company_name,
+                subscription: u.plan
+            })));
+            document.getElementById('userListCount').textContent = users.length + ' usuários com planos';
+            showToast(`✅ ${users.length} usuários com planos`, 'success');
+        }
+
+        async function loadUsersWithoutPlans() {
+            showToast('❌ Carregando usuários sem planos...', 'info');
+            const result = await apiCall('/api/users/without-plans');
+            if (!result.ok) {
+                document.getElementById('usersList').innerHTML = `<div class="empty-state"><div class="icon">❌</div><p style="color:#f85149;">Erro: ${result.data.error || 'Erro'}</p></div>`;
+                return;
+            }
+            const users = result.data.data.users || [];
+            renderUsers(users.map(u => ({
+                ...u,
+                has_plan: false,
+                user_id: u.user_id,
+                email: u.email,
+                full_name: u.full_name,
+                company_name: u.company_name,
+                subscription: null
+            })));
+            document.getElementById('userListCount').textContent = users.length + ' usuários sem planos';
+            showToast(`✅ ${users.length} usuários sem planos`, 'success');
+        }
+
+        function renderUsers(users) {
+            const container = document.getElementById('usersList');
+            if (!users || users.length === 0) {
+                container.innerHTML = `<div class="empty-state"><div class="icon">👥</div><h3>Nenhum usuário encontrado</h3></div>`;
+                document.getElementById('filterCount').textContent = '';
+                return;
+            }
+
+            let html = `<div class="table-wrapper"><table class="table">
+                <thead><tr>
+                    <th>Usuário</th>
+                    <th>Email</th>
+                    <th>Plano</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr></thead><tbody>`;
+
+            users.forEach(u => {
+                const hasPlan = u.has_plan || !!u.subscription;
+                const planName = u.subscription?.package_name || u.plan?.name || 'Nenhum';
+                const isTrial = u.subscription?.is_trial || u.plan?.is_trial || false;
+                const isExpired = u.subscription?.status === 'inactive' || false;
+                
+                let statusClass = 'inactive';
+                let statusText = '❌ Sem plano';
+                if (hasPlan && isTrial) { statusClass = 'trial'; statusText = '🔬 Trial'; }
+                else if (hasPlan && isExpired) { statusClass = 'expired'; statusText = '⏰ Expirado'; }
+                else if (hasPlan) { statusClass = 'active'; statusText = '✅ Ativo'; }
+
+                html += `
+                    <tr onclick="showUserDetails('${u.user_id}')" style="cursor:pointer;">
+                        <td><strong>${u.full_name || 'N/A'}</strong></td>
+                        <td style="color:#8b949e; font-size:12px;">${u.email || 'N/A'}</td>
+                        <td>${planName}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td>
+                            ${hasPlan ? 
+                                `<button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); openRevokeModal('${u.user_id}')">🚫 Revogar</button>` :
+                                `<button class="btn btn-success btn-sm" onclick="event.stopPropagation(); openAssignUser('${u.user_id}')">📦 Atribuir</button>`
+                            }
+                            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); copyTextFrom('${u.user_id}')">📋 ID</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+            document.getElementById('filterCount').textContent = users.length + ' encontrados';
+        }
+
+        function filterUsers() {
+            const search = document.getElementById('userSearch').value.toLowerCase();
+            const filtered = allUsers.filter(u => {
+                const email = (u.email || '').toLowerCase();
+                const name = (u.full_name || '').toLowerCase();
+                return email.includes(search) || name.includes(search);
+            });
+            renderUsers(filtered);
+            document.getElementById('userListCount').textContent = allUsers.length + ' usuários';
+        }
+
+        async function showUserDetails(userId) {
+            showToast(`👤 Carregando detalhes do usuário...`, 'info');
+            const result = await apiCall(`/api/users/${userId}/plan`);
+            const container = document.getElementById('userDetails');
+            
+            if (!result.ok) {
+                container.innerHTML = `<div class="empty-state"><div class="icon">❌</div><p style="color:#f85149;">Erro: ${result.data.error || 'Erro'}</p></div>`;
+                return;
+            }
+
+            const data = result.data.data;
+            const hasPlan = data.has_plan;
+            
+            container.innerHTML = `
+                <div style="background:#0d1117; border-radius:8px; padding:16px; border:1px solid #21262d;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                        <div>
+                            <h3 style="color:#e6edf3;">${data.user.full_name || 'N/A'}</h3>
+                            <p style="color:#8b949e; font-size:13px;">${data.user.email}</p>
+                            <p style="color:#484f58; font-size:12px;">ID: ${data.user.id}</p>
+                        </div>
+                        <div>
+                            <span class="badge ${hasPlan ? 'badge-has-plan' : 'badge-no-plan'}">
+                                ${hasPlan ? '✅ Com plano' : '❌ Sem plano'}
+                            </span>
+                        </div>
+                    </div>
+                    ${hasPlan ? `
+                        <div style="margin-top:12px; padding-top:12px; border-top:1px solid #21262d;">
+                            <div class="grid" style="grid-template-columns:1fr 1fr; gap:8px;">
+                                <div><strong>Plano:</strong> ${data.subscription.package_name}</div>
+                                <div><strong>Preço:</strong> $${data.subscription.package_price}</div>
+                                <div><strong>Tier:</strong> ${data.subscription.template_tier}</div>
+                                <div><strong>Tipo:</strong> ${data.subscription.billing_type}</div>
+                                <div><strong>Expira:</strong> ${data.subscription.expiry_date ? new Date(data.subscription.expiry_date).toLocaleDateString() : 'N/A'}</div>
+                                <div><strong>Trial:</strong> ${data.subscription.is_trial ? '🔬 Sim' : '❌ Não'}</div>
+                            </div>
+                        </div>
+                    ` : `
+                        <div style="margin-top:12px; padding-top:12px; border-top:1px solid #21262d;">
+                            <p style="color:#8b949e;">Usuário não possui plano ativo.</p>
+                            <button class="btn btn-success btn-sm" onclick="openAssignUser('${data.user.id}')">📦 Atribuir Plano</button>
+                        </div>
+                    `}
+                    <div style="margin-top:12px; padding-top:12px; border-top:1px solid #21262d;">
+                        <p><strong>Carteira:</strong></p>
+                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:4px;">
+                            <div style="background:#0d1117; padding:8px; border-radius:4px; border:1px solid #21262d; text-align:center;">
+                                <span style="color:#8b949e; font-size:11px;">Invoices</span>
+                                <div style="font-weight:bold; color:#58a6ff;">${data.wallet.invoice_remaining} ${data.wallet.invoice_unlimited ? '♾️' : ''}</div>
+                            </div>
+                            <div style="background:#0d1117; padding:8px; border-radius:4px; border:1px solid #21262d; text-align:center;">
+                                <span style="color:#8b949e; font-size:11px;">Estimates</span>
+                                <div style="font-weight:bold; color:#3fb950;">${data.wallet.estimate_remaining} ${data.wallet.estimate_unlimited ? '♾️' : ''}</div>
+                            </div>
+                            <div style="background:#0d1117; padding:8px; border-radius:4px; border:1px solid #21262d; text-align:center;">
+                                <span style="color:#8b949e; font-size:11px;">AI Estimates</span>
+                                <div style="font-weight:bold; color:#e3b341;">${data.wallet.ai_estimate_remaining} ${data.wallet.ai_estimate_unlimited ? '♾️' : ''}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top:12px; padding-top:12px; border-top:1px solid #21262d; font-size:12px; color:#8b949e;">
+                        <span class="integration-badge success">✅ user_subscriptions</span>
+                        <span class="integration-badge success">✅ wallets</span>
+                        <span class="integration-badge payment">💳 payment_transactions</span>
+                    </div>
+                </div>
+            `;
+            
+            showToast(`✅ Detalhes do usuário carregados`, 'success');
+        }
+
+        // ============================================================
+        // ASSIGN PLAN
+        // ============================================================
+        function openAssignModal() {
+            document.getElementById('assignUserId').value = '';
+            document.getElementById('assignPackageId').value = '';
+            document.getElementById('assignAmount').value = '';
+            document.getElementById('assignCoupon').value = '';
+            hideResponse('assignResponse');
+            openModal('assignModal');
+        }
+
+        function openAssignUser(userId) {
+            document.getElementById('assignUserId').value = userId;
+            document.getElementById('assignPackageId').value = '';
+            document.getElementById('assignAmount').value = '';
+            document.getElementById('assignCoupon').value = '';
+            hideResponse('assignResponse');
+            openModal('assignModal');
+        }
+
+        async function assignPlan() {
+            const userId = document.getElementById('assignUserId').value.trim();
+            const packageId = document.getElementById('assignPackageId').value.trim();
+            const billingType = document.getElementById('assignBillingType').value;
+            const amount = document.getElementById('assignAmount').value.trim();
+            const coupon = document.getElementById('assignCoupon').value.trim();
+
+            if (!userId || !packageId) {
+                showToast('❌ Preencha User ID e Package ID', 'error');
+                return;
+            }
+
+            const body = { user_id: userId, package_id: packageId, billing_type: billingType };
+            if (amount) body.amount = parseFloat(amount);
+            if (coupon) body.coupon_code = coupon;
+
+            showToast('📦 Atribuindo plano...', 'info');
+            const result = await apiCall('/api/assign-plan', 'POST', body);
+            showResponse('assignResponse', result.data, result.status);
+            
+            if (result.ok) {
+                showToast('✅ Plano atribuído com sucesso!', 'success');
+                const data = result.data.data;
+                if (data && data.integration) {
+                    showToast(`📊 ${data.integration.tables_updated.length} tabelas atualizadas`, 'info');
+                }
+                setTimeout(() => {
+                    closeModal('assignModal');
+                    loadUsers();
+                    loadUserStats();
+                    loadTableStatus();
+                }, 1500);
+            } else {
+                showToast('❌ Erro: ' + (result.data.error || 'Erro'), 'error');
+            }
+        }
+
+        // ============================================================
+        // REVOKE PLAN
+        // ============================================================
+        let revokeUserId = null;
+
+        function openRevokeModal(userId) {
+            revokeUserId = userId;
+            document.getElementById('revokeReason').value = '';
+            hideResponse('revokeResponse');
+            openModal('revokeModal');
+        }
+
+        async function confirmRevoke() {
+            if (!revokeUserId) {
+                showToast('❌ Nenhum usuário selecionado', 'error');
+                return;
+            }
+
+            const reason = document.getElementById('revokeReason').value.trim() || 'Revogado manualmente';
+
+            showToast('🚫 Revogando plano...', 'warning');
+            const result = await apiCall(`/api/users/${revokeUserId}/revoke-plan`, 'POST', { reason });
+            showResponse('revokeResponse', result.data, result.status);
+            
+            if (result.ok) {
+                showToast('✅ Plano revogado com sucesso!', 'success');
+                setTimeout(() => {
+                    closeModal('revokeModal');
+                    loadUsers();
+                    loadUserStats();
+                    loadTableStatus();
+                }, 1500);
+            } else {
+                showToast('❌ Erro: ' + (result.data.error || 'Erro'), 'error');
+            }
+        }
+
+        // ============================================================
+        // ATIVAR PLANO DIRETO
+        // ============================================================
+        async function activatePlan() {
+            const userId = document.getElementById('activateUserId').value.trim();
+            const packageId = document.getElementById('activatePackageId').value.trim();
+            const billingType = document.getElementById('activateBillingType').value;
+            const days = parseInt(document.getElementById('activateDays').value) || 30;
+
+            if (!userId || !packageId) {
+                showToast('❌ Preencha User ID e Package ID', 'error');
+                return;
+            }
+
+            showToast('⚡ Ativando plano...', 'info');
+            
+            try {
+                const result = await apiCall('/api/activate-plan', 'POST', {
+                    user_id: userId,
+                    package_id: packageId,
+                    billing_type: billingType,
+                    days: days
+                });
+
+                const container = document.getElementById('activateResponse');
+                container.className = 'response-body show';
+                
+                if (result.ok && result.data.success) {
+                    const data = result.data.data;
+                    container.innerHTML = `
+✅ Plano ativado com sucesso!
+
+👤 Usuário: ${data.user.full_name} (${data.user.email})
+📦 Plano: ${data.plan.name} - $${data.plan.price}
+📅 Expira em: ${data.days} dias (${new Date(data.expires_at).toLocaleDateString()})
+💰 Créditos adicionados: ${data.credits_added}
+
+📊 Wallet:
+  • Invoices: ${data.wallet.invoice_remaining} ${data.wallet.invoice_unlimited ? '♾️' : ''}
+  • Estimates: ${data.wallet.estimate_remaining} ${data.wallet.estimate_unlimited ? '♾️' : ''}
+  • AI Estimates: ${data.wallet.ai_estimate_remaining} ${data.wallet.ai_estimate_unlimited ? '♾️' : ''}
+                    `;
+                    showToast('✅ Plano ativado com sucesso!', 'success');
+                    
+                    setTimeout(() => {
+                        loadUsers();
+                        loadUserStats();
+                        loadTableStatus();
+                    }, 1000);
+                } else {
+                    container.innerHTML = `❌ Erro: ${result.data.error || 'Erro ao ativar plano'}`;
+                    showToast('❌ Erro ao ativar plano', 'error');
+                }
+            } catch (error) {
+                const container = document.getElementById('activateResponse');
+                container.className = 'response-body show';
+                container.innerHTML = `❌ Erro: ${error.message}`;
+                showToast('❌ Erro ao ativar plano', 'error');
+            }
+        }
+
+        // ============================================================
+        // ESTATÍSTICAS DE USUÁRIOS
+        // ============================================================
+        async function loadUserStats() {
+            const result = await apiCall('/api/users/stats');
+            const container = document.getElementById('userStatsDisplay');
+            
+            if (!result.ok) {
+                container.innerHTML = `<div class="empty-state"><div class="icon">❌</div><p style="color:#f85149;">Erro: ${result.data.error || 'Erro'}</p></div>`;
+                return;
+            }
+
+            const stats = result.data.data;
+            const planDist = stats.plan_distribution || {};
+            let planHtml = '';
+            for (const [name, count] of Object.entries(planDist)) {
+                planHtml += `<div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #21262d;">
+                    <span>${name}</span>
+                    <span style="color:#58a6ff;">${count}</span>
+                </div>`;
+            }
+
+            container.innerHTML = `
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px;">
+                    <div style="background:#0d1117; padding:12px; border-radius:8px; border:1px solid #21262d; text-align:center;">
+                        <div style="font-size:24px; font-weight:bold; color:#58a6ff;">${stats.total_users}</div>
+                        <div style="font-size:12px; color:#8b949e;">👥 Total</div>
+                    </div>
+                    <div style="background:#0d1117; padding:12px; border-radius:8px; border:1px solid #21262d; text-align:center;">
+                        <div style="font-size:24px; font-weight:bold; color:#3fb950;">${stats.users_with_plans}</div>
+                        <div style="font-size:12px; color:#8b949e;">✅ Com Plano</div>
+                    </div>
+                    <div style="background:#0d1117; padding:12px; border-radius:8px; border:1px solid #21262d; text-align:center;">
+                        <div style="font-size:24px; font-weight:bold; color:#f85149;">${stats.users_without_plans}</div>
+                        <div style="font-size:12px; color:#8b949e;">❌ Sem Plano</div>
+                    </div>
+                </div>
+                ${planHtml ? `
+                    <div style="padding-top:12px; border-top:1px solid #21262d;">
+                        <p style="color:#8b949e; font-size:13px; margin-bottom:8px;">📊 Distribuição por Plano</p>
+                        ${planHtml}
+                    </div>
+                ` : ''}
+                <div style="margin-top:12px; padding-top:12px; border-top:1px solid #21262d; font-size:12px; color:#8b949e;">
+                    📊 Taxa de Conversão: <strong>${stats.conversion_rate || '0%'}</strong>
+                </div>
+            `;
+
+            document.getElementById('userCount').textContent = stats.total_users;
+            document.getElementById('subCount').textContent = stats.users_with_plans;
+            document.getElementById('creditCount').textContent = stats.credits ? 
+                stats.credits.total_invoice_credits + stats.credits.total_estimate_credits + stats.credits.total_ai_credits : 0;
+        }
+
+        // ============================================================
+        // ESTATÍSTICAS GERAIS
+        // ============================================================
+        async function loadStats() {
+            const result = await apiCall('/api/stats');
+            if (!result.ok) {
+                document.getElementById('statsDisplay').innerHTML = `<div class="empty-state"><div class="icon">❌</div><p style="color:#f85149;">Erro</p></div>`;
+                return;
+            }
+            const stats = result.data.data;
+            document.getElementById('statsDisplay').innerHTML = `
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:12px;">
+                    <div style="background:#0d1117; padding:12px; border-radius:8px; text-align:center; border:1px solid #21262d;">
+                        <div style="font-size:24px; font-weight:bold; color:#58a6ff;">${stats.packages || 0}</div>
+                        <div style="font-size:12px; color:#8b949e;">📦 Planos</div>
+                    </div>
+                    <div style="background:#0d1117; padding:12px; border-radius:8px; text-align:center; border:1px solid #21262d;">
+                        <div style="font-size:24px; font-weight:bold; color:#3fb950;">${stats.subscriptions || 0}</div>
+                        <div style="font-size:12px; color:#8b949e;">📄 Assinaturas</div>
+                    </div>
+                    <div style="background:#0d1117; padding:12px; border-radius:8px; text-align:center; border:1px solid #21262d;">
+                        <div style="font-size:24px; font-weight:bold; color:#e3b341;">${stats.wallets || 0}</div>
+                        <div style="font-size:12px; color:#8b949e;">👛 Carteiras</div>
+                    </div>
+                    <div style="background:#0d1117; padding:12px; border-radius:8px; text-align:center; border:1px solid #21262d;">
+                        <div style="font-size:24px; font-weight:bold; color:#bc8cff;">${stats.coupons || 0}</div>
+                        <div style="font-size:12px; color:#8b949e;">🏷️ Cupons</div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('couponCount').textContent = stats.coupons || 0;
+        }
+
+        // ============================================================
+        // TABELA STATUS
+        // ============================================================
+        async function loadTableStatus() {
+            showToast('📊 Carregando status das tabelas...', 'info');
+            const container = document.getElementById('tableStatus');
+            
+            try {
+                const result = await apiCall('/api/stats');
+                const stats = result.data.data || {};
+                
+                const tables = [
+                    { name: 'subscription_plans', icon: '📦', color: '#58a6ff', count: stats.packages || 0 },
+                    { name: 'user_subscriptions', icon: '📄', color: '#3fb950', count: stats.subscriptions || 0 },
+                    { name: 'wallets', icon: '👛', color: '#e3b341', count: stats.wallets || 0 },
+                    { name: 'profiles', icon: '👤', color: '#bc8cff', count: 'N/A' },
+                ];
+
+                let html = `<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">`;
+                tables.forEach(t => {
+                    html += `
+                        <div style="background:#0d1117; padding:12px; border-radius:8px; border:1px solid #21262d; display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <span style="font-size:16px;">${t.icon}</span>
+                                <span style="font-size:13px; margin-left:8px;">${t.name}</span>
+                            </div>
+                            <span style="color:${t.color}; font-weight:bold; font-size:18px;">${t.count}</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                html += `<div style="margin-top:12px; padding-top:12px; border-top:1px solid #21262d; font-size:12px; color:#8b949e;">
+                    🔄 Última atualização: ${new Date().toLocaleTimeString()}
+                </div>`;
+                
+                container.innerHTML = html;
+                showToast('✅ Status das tabelas atualizado', 'success');
+            } catch (error) {
+                container.innerHTML = `<div class="empty-state"><div class="icon">❌</div><p style="color:#f85149;">Erro: ${error.message}</p></div>`;
+                showToast('❌ Erro ao carregar status', 'error');
+            }
+        }
+
+        // ============================================================
+        // TESTE DE INTEGRAÇÃO
+        // ============================================================
+        async function testIntegration() {
+            const userId = document.getElementById('testUserId').value.trim();
+            const packageId = document.getElementById('testPackageId').value.trim();
+
+            if (!userId || !packageId) {
+                showToast('❌ Preencha User ID e Package ID', 'error');
+                return;
+            }
+
+            showToast('🧪 Testando integração...', 'info');
+            const result = await apiCall('/api/assign-plan', 'POST', {
+                user_id: userId,
+                package_id: packageId,
+                billing_type: 'monthly'
+            });
+
+            showResponse('integrationResponse', result.data, result.status);
+            
+            if (result.ok && result.data.data) {
+                const data = result.data.data;
+                const integration = data.integration || {};
+                
+                let html = `✅ Integração concluída com sucesso!\n\n`;
+                html += `📦 Plano: ${data.package.name}\n`;
+                html += `👤 Usuário: ${data.user.name}\n`;
+                html += `💰 Créditos adicionados: ${data.credits_added}\n\n`;
+                html += `📊 Tabelas atualizadas:\n`;
+                if (integration.tables_updated) {
+                    integration.tables_updated.forEach(t => { html += `  ✅ ${t}\n`; });
+                }
+                html += `\n🔓 Recursos liberados:\n`;
+                html += `  📄 Template Tier: ${integration.features_unlocked?.template_tier || 'basic'}\n`;
+                html += `  🚀 Invoices Ilimitadas: ${integration.features_unlocked?.invoice_unlimited ? 'Sim' : 'Não'}\n`;
+                html += `  🚀 Estimates Ilimitados: ${integration.features_unlocked?.estimate_unlimited ? 'Sim' : 'Não'}\n`;
+                
+                document.getElementById('integrationResponse').className = 'response-body show';
+                document.getElementById('integrationResponse').textContent = html;
+                
+                showToast('✅ Teste de integração concluído!', 'success');
+                loadTableStatus();
+            } else {
+                showToast('❌ Erro no teste: ' + (result.data.error || 'Erro'), 'error');
+            }
+        }
+
+        // ============================================================
+        // REFRESH
+        // ============================================================
+        async function refreshAll() {
+            showToast('🔄 Recarregando...', 'info');
+            await checkConnection();
+            await loadPackages();
+            await loadStats();
+            await loadUsers();
+            await loadUserStats();
+            await loadTableStatus();
+            showToast('✅ Recarregado!', 'success');
+        }
+
+        // ============================================================
+        // INICIALIZAÇÃO
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            connectLogs();
+            setTimeout(() => {
+                checkConnection();
+                loadPackages();
+                loadStats();
+                loadUsers();
+                loadUserStats();
+                loadTableStatus();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

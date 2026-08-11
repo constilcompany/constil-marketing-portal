@@ -1,0 +1,16 @@
+import json
+import urllib.request
+
+SUPABASE_URL = "https://avppbvsxayehguepyjkb.supabase.co"
+SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF2cHBidnN4YXllaGd1ZXB5amtiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzAzMzk2MiwiZXhwIjoyMDkyNjA5OTYyfQ.IjIDpaxklgfczNpmHlrKAThnGzlECeMwtv9QodFPwZk"
+
+def rename_price_to_unit_price():
+    # Since I don't have direct SQL, I hope the user can run this.
+    # But wait, I can try to use a Supabase Edge Function if one exists to run SQL? No.
+    
+    # I'll inform the user to run the SQL.
+    pass
+
+if __name__ == "__main__":
+    print("Please run this SQL in Supabase SQL Editor:")
+    print("ALTER TABLE public.products RENAME COLUMN price TO unit_price;")

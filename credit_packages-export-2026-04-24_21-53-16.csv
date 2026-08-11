@@ -1,0 +1,9 @@
+id;name;credit_amount;price;is_active;created_at;updated_at;billing_type;billing_interval;template_tier;invoice_credits;estimate_credits;ai_estimate_credits;invoice_unlimited;estimate_unlimited;ai_estimate_unlimited;trial_enabled;trial_days;trial_invoice_credits;trial_estimate_credits;trial_ai_estimate_credits;duration_days
+7830449a-9814-40e2-a1e8-22f5b038928d;Basic;0;99;true;2026-03-11 20:09:41.873991+00;2026-03-27 17:07:36.532033+00;subscription;monthly;basic;20;15;30;false;false;false;true;7;1;2;3;30
+61376460-4262-4c53-95b5-4a180c068c64;Standard;0;199;true;2026-02-26 21:07:45.642512+00;2026-03-27 17:12:12.337908+00;subscription;monthly;professional;40;30;60;false;false;false;false;;0;0;0;30
+91ff4f7b-506e-4377-b852-87a498b06f99;Basic;0;1089;true;2026-03-11 01:09:13.715788+00;2026-03-27 17:17:20.806159+00;subscription;yearly;basic;240;180;360;false;false;false;true;14;5;10;3;30
+f8852d0c-2fd8-482c-ae04-5f38a6d8d82f;Standard;0;2189;true;2026-03-11 19:53:32.781603+00;2026-03-27 17:22:07.042612+00;subscription;yearly;professional;480;360;720;false;false;false;false;;0;0;0;30
+b366225e-1b7a-4ce7-838b-4c64abd9f5ed;Enterprise;0;4389;true;2026-03-27 17:24:45.264055+00;2026-03-27 17:25:30.584403+00;subscription;yearly;enterprise;1800;960;1800;false;false;false;false;;0;0;0;30
+e3ae4338-394b-4cd8-bb99-243e720ff53d;Business;0;299;true;2026-03-11 20:11:27.653147+00;2026-03-30 10:55:48.323692+00;subscription;monthly;professional;100;45;90;false;false;false;false;;0;0;0;30
+948566f3-8180-44e8-9f95-1b42e00a648b;Business;0;3289;true;2026-03-11 20:07:08.903296+00;2026-03-30 10:55:56.732045+00;subscription;yearly;professional;1200;540;1080;false;false;false;false;;0;0;0;30
+c5f3229a-79e4-4a8d-b6e8-dc522ae63ad0;Enterprise;0;599;true;2026-03-27 17:13:35.986131+00;2026-03-30 12:01:21.163514+00;subscription;monthly;enterprise;150;80;150;false;false;false;false;;0;0;0;30

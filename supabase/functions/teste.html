@@ -1,0 +1,1927 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🧪 Teste Direto Supabase - Planos e Pagamentos</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #f0f2f5;
+        padding: 20px;
+        color: #1a1a1a;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        font-size: 28px;
+        margin-bottom: 4px;
+        color: #1a1a1a;
+      }
+
+      .subtitle {
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 14px;
+      }
+
+      .badge {
+        display: inline-block;
+        background: #10b981;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .badge-warning {
+        background: #f59e0b;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      @media (max-width: 1024px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e5e7eb;
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #f3f4f6;
+      }
+
+      .card-title {
+        font-size: 16px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .card-title .icon {
+        font-size: 20px;
+      }
+
+      .form-group {
+        margin-bottom: 12px;
+      }
+
+      .form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 4px;
+      }
+
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.15s;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+      }
+
+      .form-group textarea {
+        font-family: monospace;
+        font-size: 13px;
+        min-height: 60px;
+        resize: vertical;
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .btn {
+        padding: 8px 20px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .btn-primary {
+        background: #6366f1;
+        color: white;
+      }
+      .btn-primary:hover {
+        background: #4f46e5;
+        transform: translateY(-1px);
+      }
+
+      .btn-success {
+        background: #10b981;
+        color: white;
+      }
+      .btn-success:hover {
+        background: #059669;
+        transform: translateY(-1px);
+      }
+
+      .btn-danger {
+        background: #ef4444;
+        color: white;
+      }
+      .btn-danger:hover {
+        background: #dc2626;
+        transform: translateY(-1px);
+      }
+
+      .btn-warning {
+        background: #f59e0b;
+        color: white;
+      }
+      .btn-warning:hover {
+        background: #d97706;
+        transform: translateY(-1px);
+      }
+
+      .btn-outline {
+        background: transparent;
+        color: #374151;
+        border: 1px solid #d1d5db;
+      }
+      .btn-outline:hover {
+        background: #f3f4f6;
+      }
+
+      .btn-sm {
+        padding: 4px 12px;
+        font-size: 12px;
+      }
+
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none !important;
+      }
+
+      .response-area {
+        margin-top: 16px;
+        border-top: 1px solid #e5e7eb;
+        padding-top: 16px;
+      }
+
+      .response-area .label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .response-area .status {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 2px 10px;
+        border-radius: 4px;
+      }
+
+      .status-success {
+        background: #d1fae5;
+        color: #065f46;
+      }
+      .status-error {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+      .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+      }
+
+      .response-body {
+        background: #1e1e2e;
+        color: #cdd6f4;
+        padding: 16px;
+        border-radius: 8px;
+        font-family: "JetBrains Mono", "Fira Code", monospace;
+        font-size: 13px;
+        line-height: 1.6;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        word-break: break-all;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .response-body .key {
+        color: #89b4fa;
+      }
+      .response-body .string {
+        color: #a6e3a1;
+      }
+      .response-body .number {
+        color: #fab387;
+      }
+      .response-body .boolean {
+        color: #cba6f7;
+      }
+      .response-body .null {
+        color: #6c7086;
+      }
+
+      .loading {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #e5e7eb;
+        border-top-color: #6366f1;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .table-packages {
+        width: 100%;
+        font-size: 13px;
+        border-collapse: collapse;
+      }
+
+      .table-packages th {
+        text-align: left;
+        padding: 8px 12px;
+        background: #f8fafc;
+        font-weight: 600;
+        color: #475569;
+        border-bottom: 2px solid #e2e8f0;
+      }
+
+      .table-packages td {
+        padding: 8px 12px;
+        border-bottom: 1px solid #f1f5f9;
+      }
+
+      .table-packages tr:hover {
+        background: #f8fafc;
+      }
+
+      .tag {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+      .tag-subscription {
+        background: #dbeafe;
+        color: #1e40af;
+      }
+      .tag-one-time {
+        background: #d1fae5;
+        color: #065f46;
+      }
+      .tag-basic {
+        background: #e5e7eb;
+        color: #374151;
+      }
+      .tag-professional {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .tag-enterprise {
+        background: #e0e7ff;
+        color: #3730a3;
+      }
+
+      .status-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 6px;
+      }
+
+      .status-dot.online {
+        background: #10b981;
+      }
+      .status-dot.offline {
+        background: #ef4444;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+      }
+
+      .stat-item {
+        background: white;
+        padding: 12px;
+        border-radius: 8px;
+        text-align: center;
+      }
+
+      .stat-item .value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #6366f1;
+      }
+
+      .stat-item .label {
+        font-size: 12px;
+        color: #6b7280;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          flex-wrap: wrap;
+        "
+      >
+        <div>
+          <h1>🧪 Teste Direto Supabase</h1>
+          <p class="subtitle">
+            Conexão direta com banco de dados <span class="badge">Sem API</span>
+            <span class="badge badge-warning">Modo Teste</span>
+          </p>
+        </div>
+        <div style="text-align: right">
+          <button class="btn btn-danger btn-sm" onclick="clearAll()">
+            🗑️ Limpar tudo
+          </button>
+        </div>
+      </div>
+
+      <!-- CONFIGURAÇÃO SUPABASE -->
+      <div
+        class="card"
+        style="margin-bottom: 20px; border-color: #6366f1; border-width: 2px"
+      >
+        <div class="card-header">
+          <div class="card-title">
+            <span class="icon">🔌</span> Conexão Supabase
+          </div>
+          <span id="connectionStatus" style="font-size: 13px">
+            <span class="status-dot offline" id="statusDot"></span>
+            <span id="statusText">Desconectado</span>
+          </span>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Supabase URL</label>
+            <input
+              type="text"
+              id="supabaseUrl"
+              placeholder="https://seu-projeto.supabase.co"
+              style="font-family: monospace"
+            />
+          </div>
+          <div class="form-group">
+            <label>Service Role Key</label>
+            <input
+              type="password"
+              id="supabaseKey"
+              placeholder="sua-service-role-key"
+              style="font-family: monospace"
+            />
+          </div>
+        </div>
+        <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap">
+          <button class="btn btn-success" onclick="connectSupabase()">
+            🔗 Conectar
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="testConnection()">
+            🔌 Testar
+          </button>
+          <button class="btn btn-warning btn-sm" onclick="setupSampleData()">
+            📦 Inserir Dados Teste
+          </button>
+        </div>
+        <div
+          id="connectionResponse"
+          class="response-area"
+          style="display: none"
+        ></div>
+      </div>
+
+      <div class="grid">
+        <!-- COLUNA ESQUERDA -->
+        <div>
+          <!-- Planos -->
+          <div class="card" style="margin-bottom: 20px">
+            <div class="card-header">
+              <div class="card-title"><span class="icon">📦</span> Planos</div>
+              <button class="btn btn-primary btn-sm" onclick="fetchPackages()">
+                🔄 Listar
+              </button>
+            </div>
+            <div id="packagesList">
+              <p style="color: #6b7280; font-size: 14px">
+                Conecte ao Supabase para carregar os planos.
+              </p>
+            </div>
+          </div>
+
+          <!-- Criar Usuário e Assinatura -->
+          <div class="card" style="margin-bottom: 20px">
+            <div class="card-header">
+              <div class="card-title">
+                <span class="icon">👤</span> Criar Usuário + Assinatura
+              </div>
+              <span class="badge" style="background: #6366f1">Teste</span>
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input
+                type="email"
+                id="testUserEmail"
+                placeholder="teste@email.com"
+                value="teste@email.com"
+              />
+            </div>
+            <div class="form-group">
+              <label>Senha</label>
+              <input
+                type="text"
+                id="testUserPassword"
+                placeholder="12345678"
+                value="12345678"
+              />
+            </div>
+            <div class="form-group">
+              <label>Nome</label>
+              <input
+                type="text"
+                id="testUserName"
+                placeholder="Usuário Teste"
+                value="Usuário Teste"
+              />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Plano</label>
+                <select id="testPackageSelect">
+                  <option value="">Selecione um plano</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Tipo</label>
+                <select id="testBillingType">
+                  <option value="one_time">One Time</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="yearly">Yearly</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Cupom (opcional)</label>
+              <input type="text" id="testCoupon" placeholder="DESC10" />
+            </div>
+            <button
+              class="btn btn-success"
+              onclick="createUserAndSubscription()"
+            >
+              🚀 Criar
+            </button>
+            <div id="createUserResponse" class="response-area"></div>
+          </div>
+
+          <!-- Processar Pagamento Mock -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                <span class="icon">💳</span> Processar Pagamento Mock
+              </div>
+              <span class="badge" style="background: #f59e0b">Mock</span>
+            </div>
+            <div class="form-group">
+              <label>User ID</label>
+              <input
+                type="text"
+                id="mockUserId"
+                placeholder="uuid do usuário"
+                style="font-family: monospace"
+              />
+            </div>
+            <div class="form-group">
+              <label>Package ID</label>
+              <input
+                type="text"
+                id="mockPackageId"
+                placeholder="uuid do pacote"
+                style="font-family: monospace"
+              />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Valor</label>
+                <input
+                  type="number"
+                  id="mockAmount"
+                  placeholder="49.90"
+                  step="0.01"
+                  value="49.90"
+                />
+              </div>
+              <div class="form-group">
+                <label>Cupom ID (opcional)</label>
+                <input
+                  type="text"
+                  id="mockCouponId"
+                  placeholder="uuid do cupom"
+                  style="font-family: monospace"
+                />
+              </div>
+            </div>
+            <button class="btn btn-warning" onclick="processMockPayment()">
+              💳 Processar
+            </button>
+            <div id="mockPaymentResponse" class="response-area"></div>
+          </div>
+        </div>
+
+        <!-- COLUNA DIREITA -->
+        <div>
+          <!-- Assinatura -->
+          <div class="card" style="margin-bottom: 20px">
+            <div class="card-header">
+              <div class="card-title">
+                <span class="icon">📄</span> Assinatura
+              </div>
+              <button
+                class="btn btn-primary btn-sm"
+                onclick="fetchUserSubscription()"
+              >
+                🔄 Buscar
+              </button>
+            </div>
+            <div class="form-group">
+              <label>User ID</label>
+              <input
+                type="text"
+                id="subUserId"
+                placeholder="uuid do usuário"
+                style="font-family: monospace"
+              />
+            </div>
+            <div id="subscriptionResponse" class="response-area"></div>
+          </div>
+
+          <!-- Carteira -->
+          <div class="card" style="margin-bottom: 20px">
+            <div class="card-header">
+              <div class="card-title">
+                <span class="icon">👛</span> Carteira
+              </div>
+              <button
+                class="btn btn-primary btn-sm"
+                onclick="fetchUserWallet()"
+              >
+                🔄 Buscar
+              </button>
+            </div>
+            <div class="form-group">
+              <label>User ID</label>
+              <input
+                type="text"
+                id="walletUserId"
+                placeholder="uuid do usuário"
+                style="font-family: monospace"
+              />
+            </div>
+            <div id="walletResponse" class="response-area"></div>
+          </div>
+
+          <!-- Consumir Crédito -->
+          <div class="card" style="margin-bottom: 20px">
+            <div class="card-header">
+              <div class="card-title">
+                <span class="icon">⚡</span> Consumir Crédito
+              </div>
+            </div>
+            <div class="form-group">
+              <label>User ID</label>
+              <input
+                type="text"
+                id="consumeUserId"
+                placeholder="uuid do usuário"
+                style="font-family: monospace"
+              />
+            </div>
+            <div class="form-group">
+              <label>Ação</label>
+              <select id="consumeAction">
+                <option value="invoice">Invoice</option>
+                <option value="estimate">Estimate</option>
+                <option value="ai_estimate">AI Estimate</option>
+              </select>
+            </div>
+            <button class="btn btn-danger" onclick="consumeCredit()">
+              ⚡ Consumir
+            </button>
+            <div id="consumeResponse" class="response-area"></div>
+          </div>
+
+          <!-- Cupons -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><span class="icon">🏷️</span> Cupons</div>
+              <button class="btn btn-primary btn-sm" onclick="fetchCoupons()">
+                🔄 Listar
+              </button>
+            </div>
+            <div class="form-group">
+              <label>Validar Cupom</label>
+              <div style="display: flex; gap: 8px">
+                <input
+                  type="text"
+                  id="validateCouponCode"
+                  placeholder="DESC10"
+                  style="flex: 1; text-transform: uppercase"
+                />
+                <button
+                  class="btn btn-primary btn-sm"
+                  onclick="validateCoupon()"
+                >
+                  🔍 Validar
+                </button>
+              </div>
+            </div>
+            <div id="couponResponse" class="response-area"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div class="card" style="margin-top: 20px; background: #f8fafc">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="icon">📊</span> Status do Sistema
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="refreshStats()">
+            🔄 Atualizar
+          </button>
+        </div>
+        <div id="systemStats">
+          <p style="color: #6b7280">
+            Conecte ao Supabase para ver as estatísticas.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      // ============================================================
+      // VARIÁVEIS GLOBAIS
+      // ============================================================
+
+      let supabaseClient = null;
+      let isConnected = false;
+
+      // ============================================================
+      // CONEXÃO SUPABASE
+      // ============================================================
+
+      function connectSupabase() {
+          const url = document.getElementById('supabaseUrl').value.trim();
+          const key = document.getElementById('supabaseKey').value.trim();
+
+          if (!url || !key) {
+              alert('❌ Preencha a URL e a Service Role Key do Supabase');
+              return;
+          }
+
+          try {
+              supabaseClient = window.supabase.createClient(url, key);
+              isConnected = true;
+
+              document.getElementById('statusDot').className = 'status-dot online';
+              document.getElementById('statusText').textContent = 'Conectado';
+              document.getElementById('connectionResponse').style.display = 'block';
+              showResponse('connectionResponse', { message: '✅ Conectado ao Supabase com sucesso!' }, 200);
+
+              // Carregar dados iniciais
+              fetchPackages();
+              fetchCoupons();
+              refreshStats();
+              populatePackageSelect();
+
+          } catch (error) {
+              isConnected = false;
+              document.getElementById('statusDot').className = 'status-dot offline';
+              document.getElementById('statusText').textContent = 'Erro';
+              showResponse('connectionResponse', { error: error.message }, 500);
+          }
+      }
+
+      async function testConnection() {
+          if (!supabaseClient) {
+              alert('❌ Conecte ao Supabase primeiro');
+              return;
+          }
+
+          try {
+              const { data, error } = await supabaseClient
+                  .from('credit_packages')
+                  .select('count', { count: 'exact', head: true });
+
+              if (error) {
+                  showResponse('connectionResponse', { error: error.message }, 500);
+                  return;
+              }
+
+              showResponse('connectionResponse', {
+                  message: '✅ Conexão OK!',
+                  tables: 'credit_packages acessível',
+                  count: data
+              }, 200);
+          } catch (error) {
+              showResponse('connectionResponse', { error: error.message }, 500);
+          }
+      }
+
+      // ============================================================
+      // DADOS DE EXEMPLO
+      // ============================================================
+
+      async function setupSampleData() {
+          if (!supabaseClient) {
+              alert('❌ Conecte ao Supabase primeiro');
+              return;
+          }
+
+          if (!confirm('⚠️ Isso irá inserir dados de exemplo no seu banco. Continuar?')) return;
+
+          showResponse('connectionResponse', { message: '⏳ Inserindo dados de exemplo...' }, 202);
+
+          try {
+              // 1. Verificar se já existem dados
+              const { count: existingPackages } = await supabaseClient
+                  .from('credit_packages')
+                  .select('count', { count: 'exact', head: true });
+
+              if (existingPackages > 0) {
+                  if (!confirm(`Já existem ${existingPackages} planos. Deseja limpar e reinserir?`)) {
+                      return;
+                  }
+                  // Limpar dados existentes (opcional)
+                  await supabaseClient.from('credit_packages').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+                  await supabaseClient.from('coupons').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+                  await supabaseClient.from('credit_action_config').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+              }
+
+              // 2. Inserir planos
+              const packages = [
+                  {
+                      name: 'Plano Gratuito',
+                      price: 0,
+                      credit_amount: 0,
+                      invoice_credits: 0,
+                      estimate_credits: 0,
+                      ai_estimate_credits: 0,
+                      invoice_unlimited: false,
+                      estimate_unlimited: false,
+                      ai_estimate_unlimited: false,
+                      billing_type: 'one_time',
+                      billing_interval: null,
+                      template_tier: 'basic',
+                      trial_enabled: false,
+                      trial_days: 0,
+                      trial_invoice_credits: 0,
+                      trial_estimate_credits: 0,
+                      trial_ai_estimate_credits: 0,
+                      is_active: true
+                  },
+                  {
+                      name: 'Plano Basic',
+                      price: 29.90,
+                      credit_amount: 10,
+                      invoice_credits: 5,
+                      estimate_credits: 5,
+                      ai_estimate_credits: 2,
+                      invoice_unlimited: false,
+                      estimate_unlimited: false,
+                      ai_estimate_unlimited: false,
+                      billing_type: 'subscription',
+                      billing_interval: 'monthly',
+                      template_tier: 'basic',
+                      trial_enabled: true,
+                      trial_days: 7,
+                      trial_invoice_credits: 3,
+                      trial_estimate_credits: 3,
+                      trial_ai_estimate_credits: 1,
+                      is_active: true
+                  },
+                  {
+                      name: 'Plano Professional',
+                      price: 49.90,
+                      credit_amount: 30,
+                      invoice_credits: 15,
+                      estimate_credits: 15,
+                      ai_estimate_credits: 5,
+                      invoice_unlimited: false,
+                      estimate_unlimited: false,
+                      ai_estimate_unlimited: false,
+                      billing_type: 'subscription',
+                      billing_interval: 'monthly',
+                      template_tier: 'professional',
+                      trial_enabled: true,
+                      trial_days: 14,
+                      trial_invoice_credits: 5,
+                      trial_estimate_credits: 5,
+                      trial_ai_estimate_credits: 2,
+                      is_active: true
+                  },
+                  {
+                      name: 'Plano Enterprise',
+                      price: 99.90,
+                      credit_amount: 100,
+                      invoice_credits: 50,
+                      estimate_credits: 50,
+                      ai_estimate_credits: 20,
+                      invoice_unlimited: true,
+                      estimate_unlimited: true,
+                      ai_estimate_unlimited: true,
+                      billing_type: 'subscription',
+                      billing_interval: 'monthly',
+                      template_tier: 'enterprise',
+                      trial_enabled: true,
+                      trial_days: 21,
+                      trial_invoice_credits: 10,
+                      trial_estimate_credits: 10,
+                      trial_ai_estimate_credits: 5,
+                      is_active: true
+                  }
+              ];
+
+              for (const pkg of packages) {
+                  const { error } = await supabaseClient.from('credit_packages').insert(pkg);
+                  if (error) console.error('Erro ao inserir pacote:', error);
+              }
+
+              // 3. Inserir cupons
+              const coupons = [
+                  { code: 'BEMVINDO10', discount_percent: 10, usage_limit: 100, usage_count: 0, expiry_date: '2026-12-31', is_active: true },
+                  { code: 'BLACK30', discount_percent: 30, usage_limit: 50, usage_count: 0, expiry_date: '2026-11-30', is_active: true },
+                  { code: 'TESTE50', discount_percent: 50, usage_limit: 10, usage_count: 0, expiry_date: '2026-07-31', is_active: true }
+              ];
+
+              for (const coupon of coupons) {
+                  const { error } = await supabaseClient.from('coupons').insert(coupon);
+                  if (error) console.error('Erro ao inserir cupom:', error);
+              }
+
+              // 4. Inserir configuração de créditos
+              const configs = [
+                  { action_type: 'invoice', credit_cost: 1, is_active: true },
+                  { action_type: 'estimate', credit_cost: 1, is_active: true },
+                  { action_type: 'ai_estimate', credit_cost: 2, is_active: true }
+              ];
+
+              for (const config of configs) {
+                  const { error } = await supabaseClient.from('credit_action_config').insert(config);
+                  if (error) console.error('Erro ao inserir config:', error);
+              }
+
+              showResponse('connectionResponse', {
+                  message: '✅ Dados de exemplo inseridos com sucesso!',
+                  packages: packages.length,
+                  coupons: coupons.length,
+                  configs: configs.length
+              }, 200);
+
+              // Recarregar dados
+              await fetchPackages();
+              await fetchCoupons();
+              await populatePackageSelect();
+              await refreshStats();
+
+          } catch (error) {
+              showResponse('connectionResponse', { error: error.message }, 500);
+          }
+      }
+
+      // ============================================================
+      // FUNÇÕES DE CONSULTA
+      // ============================================================
+
+      async function fetchPackages() {
+          if (!supabaseClient) {
+              alert('❌ Conecte ao Supabase primeiro');
+              return;
+          }
+
+          try {
+              const { data, error } = await supabaseClient
+                  .from('credit_packages')
+                  .select('*')
+                  .eq('is_active', true)
+                  .order('price', { ascending: true });
+
+              if (error) {
+                  document.getElementById('packagesList').innerHTML =
+                      `<p style="color: #ef4444;">❌ Erro: ${error.message}</p>`;
+                  return;
+              }
+
+              if (!data || data.length === 0) {
+                  document.getElementById('packagesList').innerHTML =
+                      `<p style="color: #6b7280;">Nenhum pacote encontrado.
+                      <button class="btn btn-warning btn-sm" onclick="setupSampleData()">Inserir dados de exemplo</button></p>`;
+                  return;
+              }
+
+              let html = `
+                  <table class="table-packages">
+                      <thead>
+                          <tr>
+                              <th>Nome</th>
+                              <th>Preço</th>
+                              <th>Tipo</th>
+                              <th>Tier</th>
+                              <th>Créditos</th>
+                              <th>Trial</th>
+                              <th style="font-size: 11px;">ID</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+              `;
+
+              data.forEach(pkg => {
+                  const billingTag = pkg.billing_type === 'subscription' ? 'tag-subscription' : 'tag-one-time';
+                  const tierTag = `tag-${pkg.template_tier || 'basic'}`;
+                  html += `
+                      <tr>
+                          <td><strong>${pkg.name}</strong></td>
+                          <td>R$ ${pkg.price}</td>
+                          <td><span class="tag ${billingTag}">${pkg.billing_type || 'N/A'}</span></td>
+                          <td><span class="tag ${tierTag}">${pkg.template_tier || 'basic'}</span></td>
+                          <td>${pkg.credit_amount || 0}</td>
+                          <td>${pkg.trial_enabled ? `${pkg.trial_days}d` : '❌'}</td>
+                          <td style="font-family: monospace; font-size: 10px; color: #6b7280; cursor: pointer;"
+                              onclick="copyId('${pkg.id}')" title="Clique para copiar">
+                              ${pkg.id.substring(0, 8)}...
+                          </td>
+                      </tr>
+                  `;
+              });
+
+              html += `
+                      </tbody>
+                  </table>
+                  <div style="margin-top: 8px; font-size: 11px; color: #6b7280;">
+                      💡 Clique no ID para copiar
+                  </div>
+              `;
+
+              document.getElementById('packagesList').innerHTML = html;
+              await populatePackageSelect(data);
+
+          } catch (error) {
+              document.getElementById('packagesList').innerHTML =
+                  `<p style="color: #ef4444;">❌ Erro: ${error.message}</p>`;
+          }
+      }
+
+      async function fetchCoupons() {
+          if (!supabaseClient) return;
+
+          try {
+              const { data, error } = await supabaseClient
+                  .from('coupons')
+                  .select('*')
+                  .eq('is_active', true);
+
+              if (error) return;
+
+              const couponArea = document.getElementById('couponResponse');
+              if (!couponArea) return;
+
+              let html = '';
+              if (data && data.length > 0) {
+                  html = `
+                      <div style="font-size: 13px; max-height: 150px; overflow-y: auto;">
+                          ${data.map(c =>
+                              `<div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #f1f5f9;">
+                                  <span><strong>${c.code}</strong> - ${c.discount_percent}%</span>
+                                  <span style="color: #6b7280; font-size: 12px;">${c.usage_count}/${c.usage_limit || '∞'}</span>
+                              </div>`
+                          ).join('')}
+                      </div>
+                  `;
+              } else {
+                  html = `<p style="color: #6b7280; font-size: 13px;">Nenhum cupom ativo.</p>`;
+              }
+
+              couponArea.innerHTML = `
+                  <div class="response-area">
+                      <div class="label"><span>🏷️ Cupons Ativos</span></div>
+                      <div>${html}</div>
+                  </div>
+              `;
+          } catch (error) {
+              console.error('Erro ao buscar cupons:', error);
+          }
+      }
+
+      async function populatePackageSelect(data) {
+          const select = document.getElementById('testPackageSelect');
+          if (!select) return;
+
+          try {
+              let packages = data;
+              if (!packages) {
+                  const { data: result } = await supabaseClient
+                      .from('credit_packages')
+                      .select('id, name, price')
+                      .eq('is_active', true);
+                  packages = result;
+              }
+
+              if (!packages || packages.length === 0) {
+                  select.innerHTML = '<option value="">Nenhum plano disponível</option>';
+                  return;
+              }
+
+              select.innerHTML = '<option value="">Selecione um plano</option>';
+              packages.forEach(pkg => {
+                  select.innerHTML += `<option value="${pkg.id}">${pkg.name} - R$ ${pkg.price}</option>`;
+              });
+          } catch (error) {
+              console.error('Erro ao popular select:', error);
+          }
+      }
+
+      function copyId(id) {
+          if (navigator.clipboard) {
+              navigator.clipboard.writeText(id).then(() => {
+                  alert('✅ ID copiado: ' + id.substring(0, 12) + '...');
+              }).catch(() => fallbackCopy(id));
+          } else {
+              fallbackCopy(id);
+          }
+      }
+
+      function fallbackCopy(text) {
+          const input = document.createElement('input');
+          input.value = text;
+          document.body.appendChild(input);
+          input.select();
+          document.execCommand('copy');
+          document.body.removeChild(input);
+          alert('✅ ID copiado: ' + text.substring(0, 12) + '...');
+      }
+
+      // ============================================================
+      // FUNÇÕES DE ESCRITA
+      // ============================================================
+
+      async function createUserAndSubscription() {
+          if (!supabaseClient) {
+              alert('❌ Conecte ao Supabase primeiro');
+              return;
+          }
+
+          const email = document.getElementById('testUserEmail').value.trim();
+          const password = document.getElementById('testUserPassword').value.trim();
+          const name = document.getElementById('testUserName').value.trim();
+          const packageId = document.getElementById('testPackageSelect').value;
+          const billingType = document.getElementById('testBillingType').value;
+          const couponCode = document.getElementById('testCoupon').value.trim().toUpperCase();
+
+          if (!email || !password || !name) {
+              alert('❌ Preencha email, senha e nome');
+              return;
+          }
+
+          if (!packageId) {
+              alert('❌ Selecione um plano');
+              return;
+          }
+
+          showResponse('createUserResponse', { message: '⏳ Criando usuário e assinatura...' }, 202);
+
+          try {
+              // 1. Verificar se usuário já existe
+              const { data: existingUsers } = await supabaseClient.auth.admin.listUsers();
+              const existingUser = existingUsers?.users?.find((u: any) => u.email?.toLowerCase() === email.toLowerCase());
+
+              let userId;
+              if (existingUser) {
+                  userId = existingUser.id;
+                  showResponse('createUserResponse', {
+                      message: 'ℹ️ Usuário já existe, usando existente',
+                      user_id: userId,
+                      email: email
+                  }, 200);
+              } else {
+                  // Criar usuário
+                  const { data: userData, error: userError } = await supabaseClient.auth.admin.createUser({
+                      email,
+                      password,
+                      email_confirm: true,
+                      user_metadata: { full_name: name }
+                  });
+
+                  if (userError) {
+                      showResponse('createUserResponse', { error: userError.message }, 400);
+                      return;
+                  }
+                  userId = userData.user.id;
+              }
+
+              // 2. Verificar se perfil existe
+              const { data: existingProfile } = await supabaseClient
+                  .from('profiles')
+                  .select('user_id')
+                  .eq('user_id', userId)
+                  .single();
+
+              if (!existingProfile) {
+                  // Criar perfil
+                  await supabaseClient.from('profiles').insert({
+                      user_id: userId,
+                      email: email,
+                      full_name: name,
+                      first_name: name.split(' ')[0],
+                      last_name: name.split(' ').slice(1).join(' ')
+                  });
+              }
+
+              // 3. Buscar pacote
+              const { data: pkg, error: pkgError } = await supabaseClient
+                  .from('credit_packages')
+                  .select('*')
+                  .eq('id', packageId)
+                  .single();
+
+              if (pkgError || !pkg) {
+                  showResponse('createUserResponse', { error: 'Pacote não encontrado' }, 404);
+                  return;
+              }
+
+              // 4. Processar cupom
+              let couponId = null;
+              let discountPercent = 0;
+              if (couponCode) {
+                  const { data: coupon } = await supabaseClient
+                      .from('coupons')
+                      .select('*')
+                      .eq('code', couponCode)
+                      .eq('is_active', true)
+                      .single();
+
+                  if (coupon) {
+                      const withinLimit = !coupon.usage_limit || coupon.usage_count < coupon.usage_limit;
+                      const notExpired = !coupon.expiry_date || new Date(coupon.expiry_date) > new Date();
+                      if (withinLimit && notExpired) {
+                          couponId = coupon.id;
+                          discountPercent = coupon.discount_percent;
+                          await supabaseClient
+                              .from('coupons')
+                              .update({ usage_count: coupon.usage_count + 1 })
+                              .eq('id', coupon.id);
+                      }
+                  }
+              }
+
+              // 5. Calcular preço
+              const originalPrice = parseFloat(pkg.price);
+              const discountAmount = (originalPrice * discountPercent) / 100;
+              const finalPrice = originalPrice - discountAmount;
+
+              // 6. Processar pagamento
+              const result = await processPaymentSimulation(userId, pkg, {
+                  amount: finalPrice,
+                  original_price: originalPrice,
+                  discount_amount: discountAmount,
+                  coupon_id: couponId,
+                  billing_type: billingType
+              });
+
+              showResponse('createUserResponse', {
+                  success: true,
+                  user_id: userId,
+                  email: email,
+                  package: pkg.name,
+                  original_price: originalPrice,
+                  discount_amount: discountAmount,
+                  final_price: finalPrice,
+                  coupon_used: couponCode || 'Nenhum',
+                  subscription: result.subscription,
+                  credits_added: result.credits_added,
+                  wallet: result.wallet
+              }, 200);
+
+              // Preencher campos
+              document.getElementById('subUserId').value = userId;
+              document.getElementById('walletUserId').value = userId;
+              document.getElementById('consumeUserId').value = userId;
+              document.getElementById('mockUserId').value = userId;
+
+              // Atualizar estatísticas
+              await refreshStats();
+
+          } catch (error: any) {
+              showResponse('createUserResponse', { error: error.message || 'Erro desconhecido' }, 500);
+          }
+      }
+
+      async function processPaymentSimulation(userId, pkg, txn) {
+          let subscription = null;
+          let creditsAdded = 0;
+
+          try {
+              // Calcular créditos totais
+              const totalCredits = (pkg.invoice_credits || 0) + (pkg.estimate_credits || 0) +
+                                 (pkg.ai_estimate_credits || 0) + (pkg.credit_amount || 0);
+              creditsAdded = totalCredits;
+
+              // Verificar wallet existente
+              const { data: existingWallet } = await supabaseClient
+                  .from('user_credit_wallets')
+                  .select('*')
+                  .eq('user_id', userId)
+                  .single();
+
+              if (existingWallet) {
+                  await supabaseClient
+                      .from('user_credit_wallets')
+                      .update({
+                          invoice_remaining: (existingWallet.invoice_remaining || 0) + (pkg.invoice_credits || 0),
+                          estimate_remaining: (existingWallet.estimate_remaining || 0) + (pkg.estimate_credits || 0),
+                          ai_estimate_remaining: (existingWallet.ai_estimate_remaining || 0) + (pkg.ai_estimate_credits || 0),
+                          invoice_unlimited: pkg.invoice_unlimited || existingWallet.invoice_unlimited || false,
+                          estimate_unlimited: pkg.estimate_unlimited || existingWallet.estimate_unlimited || false,
+                          ai_estimate_unlimited: pkg.ai_estimate_unlimited || existingWallet.ai_estimate_unlimited || false
+                      })
+                      .eq('user_id', userId);
+              } else {
+                  await supabaseClient
+                      .from('user_credit_wallets')
+                      .insert({
+                          user_id: userId,
+                          invoice_remaining: pkg.invoice_credits || 0,
+                          estimate_remaining: pkg.estimate_credits || 0,
+                          ai_estimate_remaining: pkg.ai_estimate_credits || 0,
+                          invoice_unlimited: pkg.invoice_unlimited || false,
+                          estimate_unlimited: pkg.estimate_unlimited || false,
+                          ai_estimate_unlimited: pkg.ai_estimate_unlimited || false
+                      });
+              }
+
+              // Processar assinatura se for subscription
+              if (pkg.billing_type === 'subscription') {
+                  const interval = txn.billing_type === 'yearly' ? 365 : 30;
+                  const expiryDate = new Date();
+                  expiryDate.setDate(expiryDate.getDate() + interval);
+
+                  // Verificar assinatura existente
+                  const { data: existingSub } = await supabaseClient
+                      .from('subscriptions')
+                      .select('*')
+                      .eq('user_id', userId)
+                      .eq('is_active', true)
+                      .single();
+
+                  if (existingSub) {
+                      const currentExpiry = new Date(existingSub.expiry_date);
+                      const newExpiry = currentExpiry > new Date()
+                          ? new Date(currentExpiry.getTime() + interval * 86400000)
+                          : expiryDate;
+
+                      await supabaseClient
+                          .from('subscriptions')
+                          .update({
+                              package_id: pkg.id,
+                              billing_type: txn.billing_type,
+                              expiry_date: newExpiry.toISOString(),
+                              template_tier: pkg.template_tier
+                          })
+                          .eq('id', existingSub.id);
+
+                      subscription = { ...existingSub, expiry_date: newExpiry };
+                  } else {
+                      const { data: newSub } = await supabaseClient
+                          .from('subscriptions')
+                          .insert({
+                              user_id: userId,
+                              package_id: pkg.id,
+                              billing_type: txn.billing_type,
+                              expiry_date: expiryDate.toISOString(),
+                              template_tier: pkg.template_tier,
+                              is_active: true,
+                              status: 'active'
+                          })
+                          .select()
+                          .single();
+
+                      subscription = newSub;
+                  }
+              }
+
+              // Atualizar créditos gerais (legado)
+              const { data: credits } = await supabaseClient
+                  .from('user_credits')
+                  .select('balance')
+                  .eq('user_id', userId)
+                  .single();
+
+              if (credits) {
+                  await supabaseClient
+                      .from('user_credits')
+                      .update({ balance: (credits.balance || 0) + totalCredits })
+                      .eq('user_id', userId);
+              } else {
+                  await supabaseClient
+                      .from('user_credits')
+                      .insert({ user_id: userId, balance: totalCredits });
+              }
+
+              // Registrar transação de crédito
+              await supabaseClient
+                  .from('credit_transactions')
+                  .insert({
+                      user_id: userId,
+                      package_id: pkg.id,
+                      transaction_type: 'purchase',
+                      credits_change: totalCredits,
+                      amount_paid: txn.amount || 0,
+                      discount_applied: txn.discount_amount || 0,
+                      coupon_id: txn.coupon_id || null
+                  });
+
+              // Registrar transação de pagamento
+              await supabaseClient
+                  .from('payment_transactions')
+                  .insert({
+                      user_id: userId,
+                      package_id: pkg.id,
+                      amount: txn.amount || pkg.price,
+                      original_price: txn.original_price || pkg.price,
+                      discount_amount: txn.discount_amount || 0,
+                      coupon_id: txn.coupon_id || null,
+                      billing_type: txn.billing_type || 'one_time',
+                      status: 'succeeded',
+                      payment_mode: 'test'
+                  });
+
+              // Registrar venda
+              const { data: sale } = await supabaseClient
+                  .from('sales')
+                  .insert({
+                      total_amount: txn.original_price || pkg.price,
+                      discount_amount: txn.discount_amount || 0,
+                      final_amount: txn.amount || pkg.price,
+                      coupon_id: txn.coupon_id || null,
+                      customer_user_id: userId
+                  })
+                  .select()
+                  .single();
+
+              // Buscar wallet atualizada
+              const { data: wallet } = await supabaseClient
+                  .from('user_credit_wallets')
+                  .select('*')
+                  .eq('user_id', userId)
+                  .single();
+
+              return {
+                  subscription,
+                  credits_added: totalCredits,
+                  wallet,
+                  sale
+              };
+
+          } catch (error: any) {
+              console.error('Erro no processamento:', error);
+              throw new Error(error.message || 'Erro ao processar pagamento');
+          }
+      }
+
+      // ============================================================
+      // FUNÇÕES DE CONSULTA DO USUÁRIO
+      // ============================================================
+
+      async function fetchUserSubscription() {
+          if (!supabaseClient) {
+              alert('❌ Conecte ao Supabase primeiro');
+              return;
+          }
+
+          const userId = document.getElementById('subUserId').value.trim();
+          if (!userId) {
+              alert('❌ Informe o User ID');
+              return;
+          }
+
+          try {
+              const { data, error } = await supabaseClient
+                  .from('subscriptions')
+                  .select('*, credit_packages(*)')
+                  .eq('user_id', userId)
+                  .eq('is_active', true)
+                  .maybeSingle();
+
+              if (error) {
+                  showResponse('subscriptionResponse', { error: error.message }, 500);
+                  return;
+              }
+
+              showResponse('subscriptionResponse', data || { message: 'Nenhuma assinatura ativa' }, data ? 200 : 404);
+          } catch (error: any) {
+              showResponse('subscriptionResponse', { error: error.message }, 500);
+          }
+      }
+
+      async function fetchUserWallet() {
+          if (!supabaseClient) {
+              alert('❌ Conecte ao Supabase primeiro');
+              return;
+          }
+
+          const userId = document.getElementById('walletUserId').value.trim();
+          if (!userId) {
+              alert('❌ Informe o User ID');
+              return;
+          }
+
+          try {
+              const { data, error } = await supabaseClient
+                  .from('user_credit_wallets')
+                  .select('*')
+                  .eq('user_id', userId)
+                  .maybeSingle();
+
+              if (error) {
+                  showResponse('walletResponse', { error: error.message }, 500);
+                  return;
+              }
+
+              showResponse('walletResponse', data || { message: 'Nenhuma carteira encontrada' }, data ? 200 : 404);
+          } catch (error: any) {
+              showResponse('walletResponse', { error: error.message }, 500);
+          }
+      }
+
+      // ============================================================
+      // CONSUMIR CRÉDITO
+      // ============================================================
+
+      async function consumeCredit() {
+          if (!supabaseClient) {
+              alert('❌ Conecte ao Supabase primeiro');
+              return;
+          }
+
+          const userId = document.getElementById('consumeUserId').value.trim();
+          const actionType = document.getElementById('consumeAction').value;
+
+          if (!userId) {
+              alert('❌ Informe o User ID');
+              return;
+          }
+
+          try {
+              // Buscar custo da ação
+              const { data: config, error: configError } = await supabaseClient
+                  .from('credit_action_config')
+                  .select('credit_cost')
+                  .eq('action_type', actionType)
+                  .eq('is_active', true)
+                  .single();
+
+              if (configError || !config) {
+                  showResponse('consumeResponse', { error: 'Ação não configurada ou inativa' }, 400);
+                  return;
+              }
+
+              const cost = config.credit_cost;
+
+              showResponse('consumeResponse', { message: `⏳ Consumindo ${cost} crédito(s) para ${actionType}...` }, 202);
+
+              // Buscar wallet
+              const { data: wallet, error: walletError } = await supabaseClient
+                  .from('user_credit_wallets')
+                  .select('*')
+                  .eq('user_id', userId)
+                  .single();
+
+              if (walletError || !wallet) {
+                  showResponse('consumeResponse', { error: 'Carteira não encontrada' }, 404);
+                  return;
+              }
+
+              const bucketMap: Record<string, { remaining: string; unlimited: string }> = {
+                  invoice: { remaining: 'invoice_remaining', unlimited: 'invoice_unlimited' },
+                  estimate: { remaining: 'estimate_remaining', unlimited: 'estimate_unlimited' },
+                  ai_estimate: { remaining: 'ai_estimate_remaining', unlimited: 'ai_estimate_unlimited' }
+              };
+
+              const bucket = bucketMap[actionType];
+              if (!bucket) {
+                  showResponse('consumeResponse', { error: 'Ação inválida' }, 400);
+                  return;
+              }
+
+              const isUnlimited = wallet[bucket.unlimited as keyof typeof wallet] as boolean;
+              let remaining = wallet[bucket.remaining as keyof typeof wallet] as number;
+
+              if (isUnlimited) {
+                  await supabaseClient
+                      .from('credit_transactions')
+                      .insert({
+                          user_id: userId,
+                          transaction_type: 'consumption',
+                          credits_change: 0,
+                          amount_paid: 0,
+                          reference_id: `${actionType}_unlimited`
+                      });
+
+                  showResponse('consumeResponse', {
+                      success: true,
+                      action: actionType,
+                      unlimited: true,
+                      credits_deducted: 0,
+                      remaining_credits: remaining,
+                      message: '✅ Consumo ilimitado (plano unlimited)'
+                  }, 200);
+                  return;
+              }
+
+              if (remaining >= cost) {
+                  // Atualizar wallet
+                  await supabaseClient
+                      .from('user_credit_wallets')
+                      .update({ [bucket.remaining]: remaining - cost })
+                      .eq('user_id', userId);
+
+                  // Registrar transação
+                  await supabaseClient
+                      .from('credit_transactions')
+                      .insert({
+                          user_id: userId,
+                          transaction_type: 'consumption',
+                          credits_change: -cost,
+                          amount_paid: 0,
+                          reference_id: null
+                      });
+
+                  showResponse('consumeResponse', {
+                      success: true,
+                      action: actionType,
+                      unlimited: false,
+                      credits_deducted: cost,
+                      remaining_credits: remaining - cost,
+                      message: `✅ ${cost} crédito(s) consumido(s) para ${actionType}`
+                  }, 200);
+
+                  await refreshStats();
+              } else {
+                  showResponse('consumeResponse', {
+                      error: 'Créditos insuficientes',
+                      action: actionType,
+                      required: cost,
+                      available: remaining,
+                      can_generate: false
+                  }, 402);
+              }
+
+          } catch (error: any) {
+              showResponse('consumeResponse', { error: error.message || 'Erro desconhecido' }, 500);
+          }
+      }
+
+      // ============================================================
+      // PROCESSAR PAGAMENTO MOCK
+      // ============================================================
+
+      async function processMockPayment() {
+          if (!supabaseClient) {
+              alert('❌ Conecte ao Supabase primeiro');
+              return;
+          }
+
+          const userId = document.getElementById('mockUserId').value.trim();
+          const packageId = document.getElementById('mockPackageId').value.trim();
+          const amount = parseFloat(document.getElementById('mockAmount').value) || 49.90;
+          const couponId = document.getElementById('mockCouponId').value.trim() || null;
+
+          if (!userId || !packageId) {
+              alert('❌ Preencha User ID e Package ID');
+              return;
+          }
+
+          try {
+              // Buscar pacote
+              const { data: pkg, error: pkgError } = await supabaseClient
+                  .from('credit_packages')
+                  .select('*')
+                  .eq('id', packageId)
+                  .single();
+
+              if (pkgError || !pkg) {
+                  showResponse('mockPaymentResponse', { error: 'Pacote não encontrado' }, 404);
+                  return;
+              }
+
+              showResponse('mockPaymentResponse', { message: '⏳ Processando pagamento...' }, 202);
+
+              const txn = {
+                  amount: amount,
+                  original_price: parseFloat(pkg.price),
+                  discount_amount: Math.max(0, parseFloat(pkg.price) - amount),
+                  coupon_id: couponId,
+                  billing_type: 'one_time'
+              };
+
+              const result = await processPaymentSimulation(userId, pkg, txn);
+
+              showResponse('mockPaymentResponse', {
+                  success: true,
+                  user_id: userId,
+                  package: pkg.name,
+                  amount_paid: amount,
+                  credits_added: result.credits_added,
+                  wallet: result.wallet,
+                  subscription: result.subscription
+              }, 200);
+
+              await refreshStats();
+
+          } catch (error: any) {
+              showResponse('mockPaymentResponse', { error: error.message || 'Erro desconhecido' }, 500);
+          }
+      }
+
+      // ============================================================
+      // VALIDAR CUPOM
+      // ============================================================
+
+      async function validateCoupon() {
+          if (!supabaseClient) {
+              alert('❌ Conecte ao Supabase primeiro');
+              return;
+          }
+
+          const code = document.getElementById('validateCouponCode').value.trim().toUpperCase();
+          if (!code) {
+              alert('❌ Informe o código do cupom');
+              return;
+          }
+
+          try {
+              const { data, error } = await supabaseClient
+                  .from('coupons')
+                  .select('*')
+                  .eq('code', code)
+                  .eq('is_active', true)
+                  .maybeSingle();
+
+              if (error) {
+                  showResponse('couponResponse', { error: error.message }, 500);
+                  return;
+              }
+
+              if (!data) {
+                  showResponse('couponResponse', { valid: false, error: 'Cupom inválido ou inativo' }, 404);
+                  return;
+              }
+
+              const withinLimit = !data.usage_limit || data.usage_count < data.usage_limit;
+              const notExpired = !data.expiry_date || new Date(data.expiry_date) > new Date();
+
+              if (!withinLimit || !notExpired) {
+                  showResponse('couponResponse', {
+                      valid: false,
+                      error: !withinLimit ? 'Limite de uso atingido' : 'Cupom expirado',
+                      code: data.code
+                  }, 400);
+                  return;
+              }
+
+              showResponse('couponResponse', {
+                  valid: true,
+                  code: data.code,
+                  discount_percent: data.discount_percent,
+                  usage_count: data.usage_count,
+                  usage_limit: data.usage_limit,
+                  expiry_date: data.expiry_date
+              }, 200);
+          } catch (error: any) {
+              showResponse('couponResponse', { error: error.message }, 500);
+          }
+      }
+
+      // ============================================================
+      // ESTATÍSTICAS
+      // ============================================================
+
+      async function refreshStats() {
+          if (!supabaseClient) {
+              document.getElementById('systemStats').innerHTML =
+                  '<p style="color: #6b7280;">Conecte ao Supabase para ver as estatísticas.</p>';
+              return;
+          }
+
+          try {
+              const [{ count: packagesCount }, { count: subscriptionsCount },
+                    { count: walletsCount }, { count: couponsCount },
+                    { count: transactionsCount }] = await Promise.all([
+                  supabaseClient.from('credit_packages').select('count', { count: 'exact', head: true }),
+                  supabaseClient.from('subscriptions').select('count', { count: 'exact', head: true }).eq('is_active', true),
+                  supabaseClient.from('user_credit_wallets').select('count', { count: 'exact', head: true }),
+                  supabaseClient.from('coupons').select('count', { count: 'exact', head: true }).eq('is_active', true),
+                  supabaseClient.from('credit_transactions').select('count', { count: 'exact', head: true })
+              ]);
+
+              document.getElementById('systemStats').innerHTML = `
+                  <div class="stats-grid">
+                      <div class="stat-item">
+                          <div class="value">${packagesCount || 0}</div>
+                          <div class="label">Planos</div>
+                      </div>
+                      <div class="stat-item">
+                          <div class="value" style="color: #10b981;">${subscriptionsCount || 0}</div>
+                          <div class="label">Assinaturas Ativas</div>
+                      </div>
+                      <div class="stat-item">
+                          <div class="value" style="color: #f59e0b;">${walletsCount || 0}</div>
+                          <div class="label">Carteiras</div>
+                      </div>
+                      <div class="stat-item">
+                          <div class="value" style="color: #8b5cf6;">${couponsCount || 0}</div>
+                          <div class="label">Cupons Ativos</div>
+                      </div>
+                      <div class="stat-item">
+                          <div class="value" style="color: #ef4444;">${transactionsCount || 0}</div>
+                          <div class="label">Transações</div>
+                      </div>
+                  </div>
+              `;
+          } catch (error) {
+              console.error('Erro ao buscar estatísticas:', error);
+          }
+      }
+
+      // ============================================================
+      // FUNÇÕES AUXILIARES
+      // ============================================================
+
+      function showResponse(elementId: string, data: any, status: number | null = null) {
+          const area = document.getElementById(elementId);
+          if (!area) return;
+
+          let statusHtml = '';
+          if (status !== null) {
+              const statusClass = status >= 200 && status < 300 ? 'status-success' :
+                                 status === 402 ? 'status-pending' : 'status-error';
+              statusHtml = `<span class="status ${statusClass}">${status}</span>`;
+          }
+
+          let bodyHtml = '';
+          if (data) {
+              try {
+                  const json = typeof data === 'string' ? JSON.parse(data) : data;
+                  bodyHtml = syntaxHighlight(JSON.stringify(json, null, 2));
+              } catch {
+                  bodyHtml = `<pre style="margin:0;font-family:inherit;">${String(data)}</pre>`;
+              }
+          }
+
+          area.innerHTML = `
+              <div class="response-area">
+                  <div class="label">
+                      <span>📤 Resposta</span>
+                      ${statusHtml}
+                  </div>
+                  <div class="response-body">${bodyHtml || '<span style="color: #6c7086;">Sem resposta</span>'}</div>
+              </div>
+          `;
+      }
+
+      function syntaxHighlight(json: string): string {
+          json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function(match) {
+              let cls = 'number';
+              if (/^"/.test(match)) {
+                  if (/:$/.test(match)) {
+                      cls = 'key';
+                  } else {
+                      cls = 'string';
+                  }
+              } else if (/true|false/.test(match)) {
+                  cls = 'boolean';
+              } else if (/null/.test(match)) {
+                  cls = 'null';
+              }
+              return `<span class="${cls}">${match}</span>`;
+          });
+      }
+
+      function clearAll() {
+          document.querySelectorAll('.response-area').forEach(el => {
+              if (el.id !== 'connectionResponse') {
+                  el.innerHTML = '';
+              }
+          });
+          document.getElementById('supabaseKey').value = '';
+          isConnected = false;
+          document.getElementById('statusDot').className = 'status-dot offline';
+          document.getElementById('statusText').textContent = 'Desconectado';
+          supabaseClient = null;
+          document.getElementById('packagesList').innerHTML =
+              '<p style="color: #6b7280; font-size: 14px;">Conecte ao Supabase para carregar os planos.</p>';
+          document.getElementById('systemStats').innerHTML =
+              '<p style="color: #6b7280;">Conecte ao Supabase para ver as estatísticas.</p>';
+          document.getElementById('connectionResponse').style.display = 'none';
+
+          // Limpar campos
+          document.getElementById('subUserId').value = '';
+          document.getElementById('walletUserId').value = '';
+          document.getElementById('consumeUserId').value = '';
+          document.getElementById('mockUserId').value = '';
+          document.getElementById('mockPackageId').value = '';
+      }
+
+      // ============================================================
+      // INICIALIZAÇÃO
+      // ============================================================
+
+      // Carregar configurações do localStorage
+      window.onload = function() {
+          const savedUrl = localStorage.getItem('supabase_test_url');
+          const savedKey = localStorage.getItem('supabase_test_key');
+          if (savedUrl) document.getElementById('supabaseUrl').value = savedUrl;
+          if (savedKey) document.getElementById('supabaseKey').value = savedKey;
+
+          if (savedUrl && savedKey) {
+              setTimeout(connectSupabase, 500);
+          }
+
+          // Salvar configurações ao mudar
+          document.getElementById('supabaseUrl').addEventListener('change', function() {
+              localStorage.setItem('supabase_test_url', this.value);
+          });
+          document.getElementById('supabaseKey').addEventListener('change', function() {
+              localStorage.setItem('supabase_test_key', this.value);
+          });
+      };
+    </script>
+  </body>
+</html>

@@ -1,0 +1,906 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🔐 Sistema 2FA - OTP Email + Google Authenticator</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <h2>⚡ Admin</h2>
+          <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="#" class="active" onclick="switchTab('dashboard')">
+            <span class="icon">📊</span> Dashboard
+          </a>
+          <a href="#" onclick="switchTab('users')">
+            <span class="icon">👥</span> Usuários
+            <span class="badge" id="userCountBadge">0</span>
+          </a>
+          <a href="#" onclick="switchTab('auth')">
+            <span class="icon">🔐</span> Login
+          </a>
+          <a href="#" onclick="switchTab('register')">
+            <span class="icon">📝</span> Registrar
+          </a>
+          <a href="#" onclick="switchTab('reset-password')">
+            <span class="icon">🔑</span> Reset Senha
+          </a>
+          <a href="#" onclick="switchTab('2fa')">
+            <span class="icon">📱</span> 2FA
+            <span class="badge" id="twoFABadge">Configurar</span>
+          </a>
+          <a href="#" onclick="switchTab('logs')">
+            <span class="icon">📝</span> Logs
+          </a>
+        </nav>
+        <div class="sidebar-footer">
+          <div
+            id="userStatus"
+            style="
+              padding: 10px;
+              margin-bottom: 10px;
+              background: rgba(255, 255, 255, 0.05);
+              border-radius: 6px;
+            "
+          >
+            <span style="font-size: 0.8rem; opacity: 0.7">Status:</span>
+            <span id="authStatus" style="color: #fc8181">❌ Desconectado</span>
+          </div>
+          <button class="btn btn-dark" onclick="toggleDarkMode()">
+            <span id="darkModeIcon">🌙</span>
+            <span id="darkModeText">Modo Escuro</span>
+          </button>
+          <button
+            class="btn btn-danger"
+            onclick="logout()"
+            style="margin-top: 10px; width: 100%; display: none"
+            id="logoutBtn"
+          >
+            🚪 Sair
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <header class="main-header">
+          <div class="header-left">
+            <h1 id="pageTitle">📊 Dashboard</h1>
+            <span class="last-update"
+              >Atualizado: <span id="lastUpdate">-</span></span
+            >
+          </div>
+          <div class="header-right">
+            <div class="search-bar">
+              <input
+                type="text"
+                id="globalSearch"
+                placeholder="🔍 Buscar..."
+                oninput="globalSearch(this.value)"
+              />
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="loadUsers()">
+              🔄
+            </button>
+          </div>
+        </header>
+
+        <!-- ======================================== -->
+        <!-- TAB 1: DASHBOARD -->
+        <!-- ======================================== -->
+        <section id="tab-dashboard" class="tab-content active">
+          <div class="stats-grid">
+            <div class="stat-card" style="border-left: 4px solid #667eea">
+              <div class="stat-icon">👥</div>
+              <div>
+                <div class="stat-number" id="totalUsers">0</div>
+                <div class="stat-label">Total de Usuários</div>
+              </div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #48bb78">
+              <div class="stat-icon">📧</div>
+              <div>
+                <div class="stat-number" id="email2FA">0</div>
+                <div class="stat-label">2FA por Email</div>
+              </div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #f6ad55">
+              <div class="stat-icon">📱</div>
+              <div>
+                <div class="stat-number" id="totp2FA">0</div>
+                <div class="stat-label">Google Authenticator</div>
+              </div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #fc8181">
+              <div class="stat-icon">⏳</div>
+              <div>
+                <div class="stat-number" id="without2FA">0</div>
+                <div class="stat-label">Sem 2FA</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="quick-actions">
+            <h3>⚡ Ações Rápidas</h3>
+            <div class="action-buttons">
+              <button class="btn btn-success" onclick="switchTab('auth')">
+                🔐 Login
+              </button>
+              <button class="btn btn-primary" onclick="switchTab('register')">
+                📝 Registrar
+              </button>
+              <button
+                class="btn btn-warning"
+                onclick="switchTab('reset-password')"
+              >
+                🔑 Reset Senha
+              </button>
+              <button class="btn btn-info" onclick="switchTab('2fa')">
+                📱 Configurar 2FA
+              </button>
+              <button class="btn btn-info" onclick="switchTab('users')">
+                👥 Usuários
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================== -->
+        <!-- TAB 2: USERS -->
+        <!-- ======================================== -->
+        <section id="tab-users" class="tab-content">
+          <div class="filters-bar">
+            <div class="filter-group">
+              <select id="filterStatus" onchange="applyFilters()">
+                <option value="all">Todos</option>
+                <option value="email">2FA Email</option>
+                <option value="totp">Google Auth</option>
+                <option value="both">Ambos</option>
+                <option value="no2fa">Sem 2FA</option>
+              </select>
+              <input
+                type="date"
+                id="filterDateFrom"
+                onchange="applyFilters()"
+                title="Data Inicial"
+              />
+              <input
+                type="date"
+                id="filterDateTo"
+                onchange="applyFilters()"
+                title="Data Final"
+              />
+            </div>
+            <div class="filter-actions">
+              <button class="btn btn-sm btn-info" onclick="applyFilters()">
+                Aplicar
+              </button>
+              <button class="btn btn-sm btn-warning" onclick="clearFilters()">
+                Limpar
+              </button>
+              <span class="filter-count" id="filterCount"
+                >Mostrando 0 usuários</span
+              >
+            </div>
+          </div>
+
+          <div class="table-container">
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 30px">
+                      <input
+                        type="checkbox"
+                        id="selectAll"
+                        onchange="toggleSelectAll()"
+                      />
+                    </th>
+                    <th onclick="sortTable('id')" style="cursor: pointer">
+                      # ↕
+                    </th>
+                    <th
+                      onclick="sortTable('full_name')"
+                      style="cursor: pointer"
+                    >
+                      Usuário ↕
+                    </th>
+                    <th onclick="sortTable('email')" style="cursor: pointer">
+                      Email ↕
+                    </th>
+                    <th>2FA Método</th>
+                    <th>Status</th>
+                    <th
+                      onclick="sortTable('created_at')"
+                      style="cursor: pointer"
+                    >
+                      Criado em ↕
+                    </th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                  <tr>
+                    <td colspan="8" class="loading">Carregando usuários...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pagination">
+              <button class="btn btn-sm" onclick="prevPage()" id="prevPageBtn">
+                ◀ Anterior
+              </button>
+              <span id="pageInfo">Página 1 de 1</span>
+              <button class="btn btn-sm" onclick="nextPage()" id="nextPageBtn">
+                Próxima ▶
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================== -->
+        <!-- TAB 3: AUTH (LOGIN) -->
+        <!-- ======================================== -->
+        <section id="tab-auth" class="tab-content">
+          <div class="auth-container">
+            <h2>🔐 Login com 2FA</h2>
+            <p style="color: var(--text-light); margin-bottom: 20px">
+              Faça login com autenticação de dois fatores.
+            </p>
+
+            <div class="auth-card">
+              <div class="auth-form">
+                <div class="form-group">
+                  <label>Email</label>
+                  <input
+                    type="email"
+                    id="loginEmail"
+                    value="teste@exemplo.com"
+                    placeholder="seu@email.com"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Senha</label>
+                  <input
+                    type="password"
+                    id="loginPassword"
+                    value="senha123"
+                    placeholder="********"
+                  />
+                </div>
+
+                <div
+                  class="form-group"
+                  id="emailOtpField"
+                  style="display: none"
+                >
+                  <label>Código 2FA (Email)</label>
+                  <div style="display: flex; gap: 10px">
+                    <input
+                      type="text"
+                      id="emailOtpCode"
+                      placeholder="000000"
+                      maxlength="6"
+                      style="flex: 1"
+                    />
+                    <button
+                      class="btn btn-sm btn-info"
+                      onclick="sendEmailOTP()"
+                      style="width: auto; white-space: nowrap"
+                    >
+                      📧 Enviar
+                    </button>
+                  </div>
+                  <small style="color: var(--text-light)"
+                    >Digite o código recebido por email</small
+                  >
+                </div>
+
+                <div class="form-group" id="totpField" style="display: none">
+                  <label>Código 2FA (Google Authenticator)</label>
+                  <input
+                    type="text"
+                    id="totpCode"
+                    placeholder="000000"
+                    maxlength="6"
+                    pattern="[0-9]{6}"
+                  />
+                  <small style="color: var(--text-light)"
+                    >Digite o código do Google Authenticator</small
+                  >
+                </div>
+
+                <button
+                  class="btn btn-primary"
+                  onclick="login()"
+                  style="width: 100%"
+                >
+                  🔑 Entrar
+                </button>
+                <button
+                  class="btn btn-warning"
+                  onclick="switchTab('reset-password')"
+                  style="width: 100%; margin-top: 10px"
+                >
+                  🔑 Esqueceu a senha?
+                </button>
+              </div>
+
+              <div class="auth-result">
+                <h4>📋 Resultado</h4>
+                <div id="authResultContent">
+                  <p style="color: var(--text-light)">Aguardando login...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================== -->
+        <!-- TAB 4: REGISTER (COM OTP) -->
+        <!-- ======================================== -->
+        <section id="tab-register" class="tab-content">
+          <div class="register-container">
+            <h2>📝 Registrar com OTP</h2>
+            <p style="color: var(--text-light); margin-bottom: 20px">
+              Receba um código de verificação por email para criar sua conta.
+            </p>
+
+            <div class="register-card">
+              <div class="register-form">
+                <div class="form-group">
+                  <label>Email *</label>
+                  <input
+                    type="email"
+                    id="registerEmail"
+                    placeholder="seu@email.com"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Senha *</label>
+                  <input
+                    type="password"
+                    id="registerPassword"
+                    placeholder="Mínimo 6 caracteres"
+                  />
+                  <small
+                    style="
+                      color: var(--text-light);
+                      display: block;
+                      margin-top: 4px;
+                    "
+                  >
+                    A senha deve ter no mínimo 6 caracteres
+                  </small>
+                </div>
+                <div class="form-group">
+                  <label>Nome Completo</label>
+                  <input
+                    type="text"
+                    id="registerFullName"
+                    placeholder="Seu nome"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Telefone</label>
+                  <input
+                    type="text"
+                    id="registerPhone"
+                    placeholder="(00) 00000-0000"
+                  />
+                </div>
+                <div
+                  class="form-group"
+                  id="registerOtpField"
+                  style="display: none"
+                >
+                  <label>Código de Verificação</label>
+                  <div style="display: flex; gap: 10px">
+                    <input
+                      type="text"
+                      id="registerOtpCode"
+                      placeholder="000000"
+                      maxlength="6"
+                      style="flex: 1"
+                    />
+                    <button
+                      class="btn btn-sm btn-info"
+                      onclick="resendRegisterOTP()"
+                      style="width: auto"
+                    >
+                      Reenviar
+                    </button>
+                  </div>
+                  <small style="color: var(--text-light)"
+                    >Digite o código recebido por email</small
+                  >
+                </div>
+
+                <div style="display: flex; gap: 10px">
+                  <button
+                    class="btn btn-success"
+                    onclick="initRegister()"
+                    id="registerBtn"
+                    style="flex: 1"
+                  >
+                    📧 Enviar Código
+                  </button>
+                  <button
+                    class="btn btn-primary"
+                    onclick="verifyRegisterOTP()"
+                    id="verifyRegisterBtn"
+                    style="flex: 1; display: none"
+                  >
+                    ✅ Verificar e Criar Conta
+                  </button>
+                </div>
+
+                <div id="registerResult" style="margin-top: 15px"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================== -->
+        <!-- TAB 5: RESET PASSWORD COM OTP (CORRIGIDO) -->
+        <!-- ======================================== -->
+        <section id="tab-reset-password" class="tab-content">
+          <div class="reset-container">
+            <h2>🔑 Resetar Senha</h2>
+            <p style="color: var(--text-light); margin-bottom: 20px">
+              Receba um código de verificação por email para resetar sua senha.
+            </p>
+
+            <div class="reset-card">
+              <div class="reset-form">
+                <!-- Passo 1: Solicitar reset -->
+                <div id="resetStep1">
+                  <div class="form-group">
+                    <label>Email</label>
+                    <input
+                      type="email"
+                      id="resetEmail"
+                      placeholder="seu@email.com"
+                    />
+                  </div>
+                  <button
+                    class="btn btn-warning"
+                    onclick="requestReset()"
+                    style="width: 100%"
+                  >
+                    📧 Enviar Código de Reset
+                  </button>
+                </div>
+
+                <!-- Passo 2: Verificar OTP e Nova Senha -->
+                <div id="resetStep2" style="display: none; margin-top: 15px">
+                  <div class="form-group">
+                    <label>Código de Verificação</label>
+                    <div style="display: flex; gap: 10px">
+                      <input
+                        type="text"
+                        id="resetOtpCode"
+                        placeholder="000000"
+                        maxlength="6"
+                        style="flex: 1"
+                      />
+                      <button
+                        class="btn btn-sm btn-info"
+                        onclick="resendResetOTP()"
+                        style="width: auto"
+                      >
+                        Reenviar
+                      </button>
+                    </div>
+                    <small style="color: var(--text-light)"
+                      >Digite o código recebido por email</small
+                    >
+                  </div>
+                  <div class="form-group">
+                    <label>Nova Senha</label>
+                    <input
+                      type="password"
+                      id="resetNewPassword"
+                      placeholder="Mínimo 6 caracteres"
+                    />
+                    <small
+                      id="resetPasswordHint"
+                      style="
+                        color: var(--text-light);
+                        display: block;
+                        margin-top: 4px;
+                      "
+                    >
+                      A senha deve ter no mínimo 6 caracteres
+                    </small>
+                  </div>
+                  <div class="form-group">
+                    <label>Confirmar Nova Senha</label>
+                    <input
+                      type="password"
+                      id="resetConfirmPassword"
+                      placeholder="Confirme a nova senha"
+                    />
+                    <small
+                      id="resetConfirmHint"
+                      style="
+                        color: var(--text-light);
+                        display: block;
+                        margin-top: 4px;
+                      "
+                    >
+                      Digite a mesma senha para confirmar
+                    </small>
+                  </div>
+                  <button
+                    class="btn btn-primary"
+                    onclick="resetPassword()"
+                    style="width: 100%"
+                  >
+                    ✅ Resetar Senha
+                  </button>
+                </div>
+
+                <div id="resetResult" style="margin-top: 15px"></div>
+              </div>
+            </div>
+
+            <div
+              class="reset-info"
+              style="
+                margin-top: 20px;
+                padding: 15px;
+                background: var(--bg-secondary);
+                border-radius: 8px;
+                border-left: 4px solid #f6ad55;
+              "
+            >
+              <h4>ℹ️ Como funciona</h4>
+              <ul
+                style="
+                  margin-left: 20px;
+                  color: var(--text-light);
+                  line-height: 1.8;
+                "
+              >
+                <li>
+                  <strong>1.</strong> Digite seu email e clique em "Enviar
+                  Código"
+                </li>
+                <li>
+                  <strong>2.</strong> Você receberá um código de 6 dígitos por
+                  email
+                </li>
+                <li><strong>3.</strong> Digite o código e sua nova senha</li>
+                <li>
+                  <strong>4.</strong> Clique em "Resetar Senha" para finalizar
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================== -->
+        <!-- TAB 6: 2FA (CONFIGURAÇÃO) -->
+        <!-- ======================================== -->
+        <section id="tab-2fa" class="tab-content">
+          <div class="twofa-container">
+            <h2>📱 Configurar 2FA</h2>
+            <p style="color: var(--text-light); margin-bottom: 20px">
+              Escolha seu método de autenticação de dois fatores.
+            </p>
+
+            <!-- Método de 2FA -->
+            <div class="twofa-method-selector">
+              <div
+                class="method-card"
+                onclick="select2FAMethod('email')"
+                id="methodEmail"
+              >
+                <div class="method-icon">📧</div>
+                <h4>Email OTP</h4>
+                <p>Receba um código por email</p>
+                <span class="method-badge" id="emailBadge">Selecionado</span>
+              </div>
+              <div
+                class="method-card"
+                onclick="select2FAMethod('totp')"
+                id="methodTotp"
+              >
+                <div class="method-icon">📱</div>
+                <h4>Google Authenticator</h4>
+                <p>Use o app Google Authenticator</p>
+                <span class="method-badge" id="totpBadge">Selecionado</span>
+              </div>
+              <div
+                class="method-card"
+                onclick="select2FAMethod('both')"
+                id="methodBoth"
+              >
+                <div class="method-icon">🔗</div>
+                <h4>Ambos</h4>
+                <p>Use ambos os métodos</p>
+                <span class="method-badge" id="bothBadge">Selecionado</span>
+              </div>
+            </div>
+
+            <!-- Configuração Email OTP -->
+            <div class="twofa-config" id="emailConfig">
+              <div class="config-card">
+                <h3>📧 Configurar Email OTP</h3>
+                <p
+                  style="
+                    color: var(--text-light);
+                    font-size: 0.9rem;
+                    margin-bottom: 15px;
+                  "
+                >
+                  Receba códigos de verificação por email.
+                </p>
+                <button
+                  class="btn btn-success"
+                  onclick="enableEmailOTP()"
+                  id="enableEmailBtn"
+                >
+                  ✅ Ativar Email OTP
+                </button>
+                <div id="emailOtpStatus" style="margin-top: 10px"></div>
+              </div>
+            </div>
+
+            <!-- Configuração TOTP (Google Authenticator) -->
+            <div class="twofa-config" id="totpConfig">
+              <div class="config-card">
+                <h3>📱 Configurar Google Authenticator</h3>
+                <p
+                  style="
+                    color: var(--text-light);
+                    font-size: 0.9rem;
+                    margin-bottom: 15px;
+                  "
+                >
+                  Escaneie o QR Code no Google Authenticator.
+                </p>
+                <button class="btn btn-primary" onclick="setupTOTP()">
+                  📱 Gerar QR Code
+                </button>
+                <div id="totpSetupResult" style="margin-top: 15px"></div>
+              </div>
+              <div class="config-card">
+                <h3>✅ Verificar TOTP</h3>
+                <div style="display: flex; gap: 10px">
+                  <input
+                    type="text"
+                    id="verifyTotpCode"
+                    placeholder="000000"
+                    maxlength="6"
+                    style="flex: 1"
+                  />
+                  <button class="btn btn-success" onclick="verifyTOTP()">
+                    Verificar
+                  </button>
+                </div>
+                <div id="totpVerifyResult" style="margin-top: 10px"></div>
+              </div>
+            </div>
+
+            <!-- Backup Codes -->
+            <div class="twofa-config" id="backupConfig">
+              <div class="config-card">
+                <h3>🔑 Códigos de Backup</h3>
+                <p
+                  style="
+                    color: var(--text-light);
+                    font-size: 0.9rem;
+                    margin-bottom: 15px;
+                  "
+                >
+                  Códigos de emergência caso perca acesso ao 2FA.
+                </p>
+                <button
+                  class="btn btn-warning"
+                  onclick="regenerateBackupCodes()"
+                >
+                  🔄 Gerar Backups
+                </button>
+                <div id="backupResult" style="margin-top: 10px"></div>
+              </div>
+            </div>
+
+            <!-- Desabilitar 2FA -->
+            <div class="twofa-config">
+              <div class="config-card" style="border: 1px solid #fc8181">
+                <h3 style="color: #fc8181">🚫 Desabilitar 2FA</h3>
+                <p
+                  style="
+                    color: var(--text-light);
+                    font-size: 0.9rem;
+                    margin-bottom: 15px;
+                  "
+                >
+                  Desative a autenticação de dois fatores.
+                </p>
+                <div style="display: flex; gap: 10px">
+                  <input
+                    type="text"
+                    id="disable2FACode"
+                    placeholder="Código 2FA"
+                    maxlength="6"
+                    style="flex: 1"
+                  />
+                  <button class="btn btn-danger" onclick="disable2FA()">
+                    Desabilitar
+                  </button>
+                </div>
+                <div id="disableResult" style="margin-top: 10px"></div>
+              </div>
+            </div>
+
+            <!-- Status 2FA -->
+            <div class="twofa-status">
+              <h3>📊 Status do 2FA</h3>
+              <div id="twoFAStatusContent">
+                <div class="loading">Carregando...</div>
+              </div>
+            </div>
+
+            <!-- Logs de Testes -->
+            <div class="twofa-logs">
+              <h4>📝 Histórico de Testes</h4>
+              <div
+                id="twoFATestLogs"
+                style="
+                  max-height: 200px;
+                  overflow-y: auto;
+                  font-family: monospace;
+                  font-size: 0.8rem;
+                "
+              >
+                <p style="color: var(--text-light)">Nenhum teste realizado</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================== -->
+        <!-- TAB 7: LOGS -->
+        <!-- ======================================== -->
+        <section id="tab-logs" class="tab-content">
+          <div class="logs-container">
+            <div class="logs-header">
+              <h3>📝 Histórico de Atividades</h3>
+              <button class="btn btn-sm btn-danger" onclick="clearLogs()">
+                🗑️ Limpar Logs
+              </button>
+            </div>
+            <div id="logsContent" class="logs-content">
+              <div class="loading">Carregando logs...</div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- ======================================== -->
+    <!-- MODALS -->
+    <!-- ======================================== -->
+    <div class="modal" id="detailModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>📋 Detalhes do Usuário</h2>
+          <button class="modal-close" onclick="closeModal('detailModal')">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body" id="detailModalBody">
+          <div class="loading">Carregando...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="resetPasswordModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>🔑 Resetar Senha (Admin)</h2>
+          <button
+            class="modal-close"
+            onclick="closeModal('resetPasswordModal')"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="resetPasswordBody">
+            <p style="margin-bottom: 15px">
+              Digite a nova senha para o usuário:
+            </p>
+            <div class="form-group">
+              <input
+                type="password"
+                id="newPassword"
+                placeholder="Nova senha (mínimo 6 caracteres)"
+              />
+            </div>
+            <div class="form-group">
+              <input
+                type="password"
+                id="confirmPassword"
+                placeholder="Confirmar senha"
+              />
+            </div>
+            <button
+              class="btn btn-warning"
+              onclick="resetPasswordAdmin()"
+              style="width: 100%"
+            >
+              Resetar Senha
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="createUserModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>➕ Criar Novo Usuário</h2>
+          <button class="modal-close" onclick="closeModal('createUserModal')">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="createUserBody">
+            <div class="form-group">
+              <label>Email *</label>
+              <input
+                type="email"
+                id="newUserEmail"
+                placeholder="usuario@exemplo.com"
+              />
+            </div>
+            <div class="form-group">
+              <label>Senha *</label>
+              <input
+                type="password"
+                id="newUserPassword"
+                placeholder="Mínimo 6 caracteres"
+              />
+            </div>
+            <div class="form-group">
+              <label>Nome Completo</label>
+              <input
+                type="text"
+                id="newUserFullName"
+                placeholder="Nome do usuário"
+              />
+            </div>
+            <div class="form-group">
+              <label>Telefone</label>
+              <input
+                type="text"
+                id="newUserPhone"
+                placeholder="(00) 00000-0000"
+              />
+            </div>
+            <button
+              class="btn btn-success"
+              onclick="createUser()"
+              style="width: 100%"
+            >
+              Criar Usuário
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

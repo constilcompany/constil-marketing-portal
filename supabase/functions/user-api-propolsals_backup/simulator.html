@@ -1,0 +1,2084 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User-API Ultimate Simulator</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      body {
+        background: #0b0e14;
+        color: #e4e6eb;
+        padding: 16px;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .container {
+        max-width: 1400px;
+        width: 100%;
+        background: #151b24;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        border: 1px solid #2a3440;
+      }
+      h1 {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      h1 small {
+        font-size: 13px;
+        font-weight: 400;
+        color: #8896a6;
+      }
+      .badge {
+        padding: 3px 12px;
+        border-radius: 40px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        color: #fff;
+        display: inline-block;
+      }
+      .badge-edge {
+        background: #e67e22;
+      }
+      .badge-auth {
+        background: #1a6fb0;
+      }
+      .badge-public {
+        background: #1f8b4c;
+      }
+      .badge-sendgrid {
+        background: #6c3483;
+      }
+      .badge-online {
+        background: #1f8b4c;
+      }
+      .badge-offline {
+        background: #b33a3a;
+      }
+      .badge-checking {
+        background: #8b7500;
+      }
+      .badge-ultimate {
+        background: linear-gradient(135deg, #e67e22, #c0392b);
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 20px;
+        margin-top: 16px;
+      }
+      .sidebar {
+        background: #11181f;
+        border-radius: 12px;
+        padding: 14px;
+        border: 1px solid #26303c;
+        height: fit-content;
+        position: sticky;
+        top: 20px;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+      }
+      .sidebar h3 {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #8896a6;
+        margin-bottom: 10px;
+      }
+      .sidebar .section-title {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #5a6a7a;
+        margin: 10px 0 6px 8px;
+        font-weight: 600;
+      }
+      .endpoint-btn {
+        display: block;
+        width: 100%;
+        text-align: left;
+        background: transparent;
+        border: none;
+        color: #c8d0d8;
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        cursor: pointer;
+        transition: 0.2s;
+        border-left: 3px solid transparent;
+      }
+      .endpoint-btn:hover {
+        background: #1f2a36;
+        color: #fff;
+      }
+      .endpoint-btn.active {
+        background: #1f2a36;
+        border-left-color: #e67e22;
+        color: #fff;
+      }
+      .endpoint-btn .method {
+        display: inline-block;
+        font-weight: 700;
+        font-size: 9px;
+        padding: 1px 5px;
+        border-radius: 3px;
+        margin-right: 5px;
+      }
+      .endpoint-btn .method.post {
+        background: #1a6fb0;
+        color: #fff;
+      }
+      .endpoint-btn .method.get {
+        background: #1f8b4c;
+        color: #fff;
+      }
+      .endpoint-btn .method.sendgrid {
+        background: #6c3483;
+        color: #fff;
+      }
+
+      .main {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .panel {
+        background: #11181f;
+        border-radius: 12px;
+        padding: 16px;
+        border: 1px solid #26303c;
+      }
+      .panel h2 {
+        font-size: 16px;
+        font-weight: 500;
+        margin-bottom: 3px;
+      }
+      .panel .path {
+        color: #8896a6;
+        font-size: 12px;
+        font-family: monospace;
+        margin-bottom: 12px;
+      }
+      .form-group {
+        margin-bottom: 10px;
+      }
+      .form-group label {
+        display: block;
+        font-size: 11px;
+        font-weight: 500;
+        color: #a0adb8;
+        margin-bottom: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+      .form-group input,
+      .form-group textarea {
+        width: 100%;
+        padding: 8px 12px;
+        background: #0b0e14;
+        border: 1px solid #26303c;
+        border-radius: 6px;
+        color: #e4e6eb;
+        font-size: 13px;
+        transition: 0.2s;
+      }
+      .form-group input:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: #e67e22;
+        box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.15);
+      }
+      .form-group textarea {
+        min-height: 60px;
+        resize: vertical;
+        font-family: "Courier New", monospace;
+        font-size: 12px;
+      }
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .btn {
+        padding: 8px 18px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #d35400, #e67e22);
+        color: #fff;
+      }
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(230, 126, 34, 0.3);
+      }
+      .btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .btn-secondary {
+        background: #26303c;
+        color: #c8d0d8;
+      }
+      .btn-secondary:hover {
+        background: #32404e;
+      }
+      .btn-success {
+        background: #1f8b4c;
+        color: #fff;
+      }
+      .btn-success:hover {
+        background: #26a35a;
+      }
+      .btn-danger {
+        background: #b33a3a;
+        color: #fff;
+      }
+      .btn-danger:hover {
+        background: #cc4444;
+      }
+      .btn-sendgrid {
+        background: linear-gradient(135deg, #4a235a, #6c3483);
+        color: #fff;
+      }
+      .btn-sendgrid:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(108, 52, 131, 0.3);
+      }
+
+      .response-area {
+        background: #0b0e14;
+        border-radius: 6px;
+        padding: 12px;
+        margin-top: 10px;
+        border: 1px solid #1f2a36;
+        min-height: 100px;
+        max-height: 350px;
+        overflow: auto;
+        font-family: "Courier New", monospace;
+        font-size: 12px;
+        white-space: pre-wrap;
+        word-break: break-all;
+        color: #c8d0d8;
+      }
+      .response-area .status {
+        color: #e67e22;
+        font-weight: 600;
+      }
+      .response-area .status.success {
+        color: #4caf50;
+      }
+      .response-area .status.error {
+        color: #ef5350;
+      }
+      .response-area .status.pending {
+        color: #ffb74d;
+      }
+
+      .flex {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .flex-between {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .mt-10 {
+        margin-top: 10px;
+      }
+      .mt-12 {
+        margin-top: 12px;
+      }
+      .mt-14 {
+        margin-top: 14px;
+      }
+      .mb-8 {
+        margin-bottom: 8px;
+      }
+      .text-muted {
+        color: #8896a6;
+        font-size: 12px;
+      }
+      .text-green {
+        color: #4caf50;
+      }
+      .text-red {
+        color: #ef5350;
+      }
+      .text-blue {
+        color: #448aff;
+      }
+      .text-orange {
+        color: #e67e22;
+      }
+      .text-purple {
+        color: #bb8fce;
+      }
+
+      .pill {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 10px;
+        font-weight: 600;
+        background: #1f2a36;
+        color: #a0adb8;
+      }
+      .pill.active {
+        background: #1f8b4c;
+        color: #fff;
+      }
+      .pill.sendgrid {
+        background: #6c3483;
+        color: #fff;
+      }
+      .pill.online {
+        background: #1f8b4c;
+        color: #fff;
+      }
+      .pill.offline {
+        background: #b33a3a;
+        color: #fff;
+      }
+      .pill.checking {
+        background: #8b7500;
+        color: #fff;
+      }
+
+      .logs {
+        max-height: 150px;
+        overflow-y: auto;
+        font-size: 11px;
+        font-family: "Courier New", monospace;
+        background: #0b0e14;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #1f2a36;
+      }
+      .logs .log-entry {
+        padding: 3px 0;
+        border-bottom: 1px solid #11181f;
+        color: #8896a6;
+      }
+      .logs .log-entry .time {
+        color: #5a6a7a;
+      }
+      .logs .log-entry .method {
+        font-weight: 600;
+      }
+      .logs .log-entry .method.GET {
+        color: #4caf50;
+      }
+      .logs .log-entry .method.POST {
+        color: #448aff;
+      }
+      .logs .log-entry .method.SENDGRID {
+        color: #bb8fce;
+      }
+      .logs .log-entry .status-code {
+        font-weight: 600;
+      }
+      .logs .log-entry .status-code.success {
+        color: #4caf50;
+      }
+      .logs .log-entry .status-code.error {
+        color: #ef5350;
+      }
+
+      @media (max-width: 768px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .sidebar {
+          position: static;
+          max-height: none;
+        }
+        .form-row {
+          grid-template-columns: 1fr;
+        }
+        .container {
+          padding: 16px;
+        }
+      }
+      .loading {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 2px solid #26303c;
+        border-top-color: #e67e22;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .sandbox-toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #0b0e14;
+        padding: 4px 12px;
+        border-radius: 6px;
+        border: 1px solid #26303c;
+      }
+      .sandbox-toggle .toggle-label {
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .sandbox-toggle .toggle-label.real {
+        color: #4caf50;
+      }
+      .sandbox-toggle .toggle-label.sandbox {
+        color: #ffb74d;
+      }
+      .switch {
+        position: relative;
+        width: 36px;
+        height: 20px;
+        background: #1a3a55;
+        border-radius: 10px;
+        transition: background 0.3s;
+        cursor: pointer;
+      }
+      .switch.active {
+        background: #1f8b4c;
+      }
+      .switch .slider {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        background: #e0e8f0;
+        border-radius: 50%;
+        transition: transform 0.3s;
+      }
+      .switch.active .slider {
+        transform: translateX(16px);
+        background: #fff;
+      }
+      .url-input {
+        background: #0b0e14;
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: 1px solid #26303c;
+        color: #e4e6eb;
+        font-size: 12px;
+        font-family: monospace;
+        width: 100%;
+        min-width: 200px;
+      }
+      .url-input:focus {
+        outline: none;
+        border-color: #e67e22;
+      }
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+      .status-dot.online {
+        background: #4caf50;
+        box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
+      }
+      .status-dot.offline {
+        background: #ef5350;
+        box-shadow: 0 0 8px rgba(239, 83, 80, 0.4);
+      }
+      .status-dot.checking {
+        background: #ffb74d;
+        animation: pulse 1s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.5;
+          transform: scale(0.8);
+        }
+      }
+
+      ::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #0a1a2b;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #1a3a55;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #00b4d8;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- HEADER -->
+      <div class="flex-between">
+        <div>
+          <h1>
+            🚀 User-API Ultimate Simulator
+            <small>v5.0 - 41 Rotas</small>
+          </h1>
+          <div class="flex" style="margin-top: 4px">
+            <span class="badge badge-ultimate">⚡ ULTIMATE</span>
+            <span class="badge badge-edge">📧 SendGrid</span>
+            <span class="badge badge-auth">🔒 Auth</span>
+            <span class="badge badge-public">🆓 Free Plan</span>
+            <span id="statusBadge" class="badge badge-checking"
+              >⏳ Verificando...</span
+            >
+          </div>
+        </div>
+        <div style="text-align: right">
+          <button
+            class="btn btn-secondary"
+            onclick="clearLogs()"
+            style="font-size: 11px"
+          >
+            🗑️ Limpar Logs
+          </button>
+          <button
+            class="btn btn-secondary"
+            onclick="resetState()"
+            style="font-size: 11px; margin-left: 5px"
+          >
+            🔄 Reset
+          </button>
+          <button
+            class="btn btn-secondary"
+            onclick="checkHealth()"
+            style="font-size: 11px; margin-left: 5px"
+          >
+            🏥 Health
+          </button>
+        </div>
+      </div>
+
+      <!-- TOP BAR -->
+      <div
+        class="flex-between mt-10"
+        style="
+          background: #11181f;
+          padding: 8px 14px;
+          border-radius: 8px;
+          border: 1px solid #26303c;
+          flex-wrap: wrap;
+          gap: 8px;
+        "
+      >
+        <div class="flex" style="flex-wrap: wrap; gap: 8px">
+          <div>
+            <span class="text-muted">🌐 URL:</span>
+            <input
+              type="text"
+              id="baseUrl"
+              class="url-input"
+              value="https://avppbvsxayehguepyjkb.supabase.co/functions/v1/user-api-test"
+              style="width: 320px; min-width: 200px; font-size: 11px"
+            />
+          </div>
+          <div class="sandbox-toggle">
+            <span class="toggle-label sandbox" id="sandboxLabel"
+              >🔒 SANDBOX</span
+            >
+            <div
+              class="switch active"
+              id="sandboxSwitch"
+              onclick="toggleSandbox()"
+            >
+              <div class="slider"></div>
+            </div>
+            <span
+              class="toggle-label real"
+              id="sandboxStatus"
+              style="font-size: 10px; color: #8896a6"
+              >(simulação)</span
+            >
+          </div>
+        </div>
+        <div class="flex" style="flex-wrap: wrap; gap: 8px">
+          <div class="flex" style="gap: 4px">
+            <span class="status-dot checking" id="statusDot"></span>
+            <span id="statusText" style="font-size: 11px; color: #8896a6"
+              >Verificando...</span
+            >
+          </div>
+          <div>
+            <span class="text-muted">🔑 Token:</span>
+            <span
+              id="tokenDisplay"
+              style="font-family: monospace; font-size: 11px; color: #8896a6"
+              >Nenhum</span
+            >
+          </div>
+          <div>
+            <span class="text-muted">👤 Usuário:</span>
+            <span
+              id="userDisplay"
+              style="font-family: monospace; font-size: 11px; color: #8896a6"
+              >Não autenticado</span
+            >
+          </div>
+          <div>
+            <span class="text-muted">📦 Pacotes:</span>
+            <span
+              id="packageCount"
+              style="font-family: monospace; font-size: 11px; color: #8896a6"
+              >0</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- LAYOUT -->
+      <div class="layout">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+          <h3>📌 41 Endpoints</h3>
+
+          <div class="section-title">🔓 Públicos (9)</div>
+          <button
+            class="endpoint-btn active"
+            data-endpoint="packages"
+            onclick="selectEndpoint('packages')"
+          >
+            <span class="method get">GET</span> /packages
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="register"
+            onclick="selectEndpoint('register')"
+          >
+            <span class="method post">POST</span> /register
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="login"
+            onclick="selectEndpoint('login')"
+          >
+            <span class="method post">POST</span> /login
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="send-signup-otp"
+            onclick="selectEndpoint('send-signup-otp')"
+          >
+            <span class="method post">POST</span> /send-signup-otp
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="forgot-password"
+            onclick="selectEndpoint('forgot-password')"
+          >
+            <span class="method post">POST</span> /forgot-password
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="verify-otp"
+            onclick="selectEndpoint('verify-otp')"
+          >
+            <span class="method post">POST</span> /verify-otp
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="reset-password"
+            onclick="selectEndpoint('reset-password')"
+          >
+            <span class="method post">POST</span> /reset-password
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="google"
+            onclick="selectEndpoint('google')"
+          >
+            <span class="method post">POST</span> /google
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="auth/google"
+            onclick="selectEndpoint('auth/google')"
+          >
+            <span class="method post">POST</span> /auth/google
+          </button>
+
+          <div class="section-title">📧 SendGrid (14)</div>
+          <button
+            class="endpoint-btn"
+            data-endpoint="sendgrid/health"
+            onclick="selectEndpoint('sendgrid/health')"
+          >
+            <span class="method get">GET</span> /sendgrid/health
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="sendgrid/status"
+            onclick="selectEndpoint('sendgrid/status')"
+          >
+            <span class="method get">GET</span> /sendgrid/status
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="sendgrid/send"
+            onclick="selectEndpoint('sendgrid/send')"
+          >
+            <span class="method sendgrid">POST</span> /sendgrid/send
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="sendgrid/send-real"
+            onclick="selectEndpoint('sendgrid/send-real')"
+          >
+            <span class="method sendgrid">POST</span> /sendgrid/send-real
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="sendgrid/otp"
+            onclick="selectEndpoint('sendgrid/otp')"
+          >
+            <span class="method sendgrid">POST</span> /sendgrid/otp
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="sendgrid/estimate"
+            onclick="selectEndpoint('sendgrid/estimate')"
+          >
+            <span class="method sendgrid">POST</span> /sendgrid/estimate
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="sendgrid/invoice"
+            onclick="selectEndpoint('sendgrid/invoice')"
+          >
+            <span class="method sendgrid">POST</span> /sendgrid/invoice
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="sendgrid/proposal"
+            onclick="selectEndpoint('sendgrid/proposal')"
+          >
+            <span class="method sendgrid">POST</span> /sendgrid/proposal
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="sendgrid/welcome"
+            onclick="selectEndpoint('sendgrid/welcome')"
+          >
+            <span class="method sendgrid">POST</span> /sendgrid/welcome
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="sendgrid/reset-password"
+            onclick="selectEndpoint('sendgrid/reset-password')"
+          >
+            <span class="method sendgrid">POST</span> /sendgrid/reset-password
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="sendgrid/confirm"
+            onclick="selectEndpoint('sendgrid/confirm')"
+          >
+            <span class="method sendgrid">POST</span> /sendgrid/confirm
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="sendgrid/notification"
+            onclick="selectEndpoint('sendgrid/notification')"
+          >
+            <span class="method sendgrid">POST</span> /sendgrid/notification
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="sendgrid/simple"
+            onclick="selectEndpoint('sendgrid/simple')"
+          >
+            <span class="method sendgrid">POST</span> /sendgrid/simple
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="sendgrid/bulk"
+            onclick="selectEndpoint('sendgrid/bulk')"
+          >
+            <span class="method sendgrid">POST</span> /sendgrid/bulk
+          </button>
+
+          <div class="section-title">🔒 Autenticados (15)</div>
+          <button
+            class="endpoint-btn"
+            data-endpoint="credits"
+            onclick="selectEndpoint('credits')"
+          >
+            <span class="method get">GET</span> /credits
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="get_profile"
+            onclick="selectEndpoint('get_profile')"
+          >
+            <span class="method get">GET</span> /get_profile
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="list_invoices"
+            onclick="selectEndpoint('list_invoices')"
+          >
+            <span class="method get">GET</span> /list_invoices
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="wallet"
+            onclick="selectEndpoint('wallet')"
+          >
+            <span class="method get">GET</span> /wallet
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="subscription"
+            onclick="selectEndpoint('subscription')"
+          >
+            <span class="method get">GET</span> /subscription
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="start-free"
+            onclick="selectEndpoint('start-free')"
+          >
+            <span class="method post">POST</span> /start-free 🆓
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="check-free-eligibility"
+            onclick="selectEndpoint('check-free-eligibility')"
+          >
+            <span class="method get">GET</span> /check-free-eligibility
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="start-trial"
+            onclick="selectEndpoint('start-trial')"
+          >
+            <span class="method post">POST</span> /start-trial
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="verify-trial"
+            onclick="selectEndpoint('verify-trial')"
+          >
+            <span class="method post">POST</span> /verify-trial
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="template-access"
+            onclick="selectEndpoint('template-access')"
+          >
+            <span class="method get">GET</span> /template-access
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="credit-config"
+            onclick="selectEndpoint('credit-config')"
+          >
+            <span class="method get">GET</span> /credit-config
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="consume-credit"
+            onclick="selectEndpoint('consume-credit')"
+          >
+            <span class="method post">POST</span> /consume-credit
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="invoice-generated"
+            onclick="selectEndpoint('invoice-generated')"
+          >
+            <span class="method post">POST</span> /invoice-generated
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="create-checkout"
+            onclick="selectEndpoint('create-checkout')"
+          >
+            <span class="method post">POST</span> /create-checkout
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="verify-payment"
+            onclick="selectEndpoint('verify-payment')"
+          >
+            <span class="method post">POST</span> /verify-payment
+          </button>
+          <button
+            class="endpoint-btn"
+            data-endpoint="validate-coupon"
+            onclick="selectEndpoint('validate-coupon')"
+          >
+            <span class="method post">POST</span> /validate-coupon
+          </button>
+        </div>
+
+        <!-- MAIN -->
+        <div class="main">
+          <!-- Request Panel -->
+          <div class="panel">
+            <div class="flex-between">
+              <div>
+                <h2 id="endpointTitle">/packages</h2>
+                <div class="path" id="endpointPath">
+                  GET /user-api-test/packages
+                </div>
+              </div>
+              <div>
+                <span class="pill" id="authBadge">🔓 Público</span>
+                <span
+                  class="pill sendgrid"
+                  id="sendgridBadge"
+                  style="display: none"
+                  >📧 SendGrid</span
+                >
+              </div>
+            </div>
+
+            <div id="requestBodyContainer">
+              <div class="text-muted" style="padding: 6px 0">
+                <span class="pill">GET</span> Este endpoint não requer corpo de
+                requisição.
+              </div>
+            </div>
+
+            <div class="flex mt-12">
+              <button
+                class="btn btn-primary"
+                id="sendBtn"
+                onclick="sendRequest()"
+              >
+                🚀 Enviar Requisição
+              </button>
+              <button
+                class="btn btn-secondary"
+                onclick="loadExample()"
+                style="margin-left: 8px"
+                id="exampleBtn"
+              >
+                📋 Exemplo
+              </button>
+            </div>
+          </div>
+
+          <!-- Response Panel -->
+          <div class="panel">
+            <div class="flex-between">
+              <h2 style="font-size: 15px">📤 Resposta</h2>
+              <span
+                id="responseTime"
+                class="text-muted"
+                style="font-size: 11px"
+              ></span>
+            </div>
+            <div class="response-area" id="responseArea">
+              <span class="text-muted">Aguardando requisição...</span>
+            </div>
+          </div>
+
+          <!-- Logs -->
+          <div class="panel">
+            <div class="flex-between">
+              <h2 style="font-size: 15px">📋 Logs</h2>
+              <span class="text-muted" style="font-size: 11px" id="logCount"
+                >0 entradas</span
+              >
+            </div>
+            <div class="logs" id="logsContainer">
+              <div class="log-entry text-muted">Nenhum log ainda.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ============================================================
+      // SIMULADOR ULTIMATE - 41 ROTAS
+      // ============================================================
+
+      // --- ESTADO GLOBAL ---
+      const state = {
+        token: null,
+        userId: null,
+        userEmail: null,
+        isAuthenticated: false,
+        isSandbox: true,
+        isOnline: false,
+        logs: [],
+        packages: [
+          {
+            id: "pkg_free",
+            name: "Free Plan",
+            price: 0,
+            is_free: true,
+            template_tier: "basic",
+            invoice_credits: 5,
+            estimate_credits: 3,
+            ai_estimate_credits: 2,
+            is_active: true,
+          },
+          {
+            id: "pkg_basic",
+            name: "Basic",
+            price: 29.9,
+            is_free: false,
+            template_tier: "basic",
+            invoice_credits: 20,
+            estimate_credits: 10,
+            ai_estimate_credits: 5,
+            is_active: true,
+          },
+          {
+            id: "pkg_pro",
+            name: "Professional",
+            price: 79.9,
+            is_free: false,
+            template_tier: "professional",
+            invoice_credits: 100,
+            estimate_credits: 50,
+            ai_estimate_credits: 20,
+            is_active: true,
+          },
+          {
+            id: "pkg_enterprise",
+            name: "Enterprise",
+            price: 199.9,
+            is_free: false,
+            template_tier: "enterprise",
+            invoice_credits: 500,
+            estimate_credits: 200,
+            ai_estimate_credits: 100,
+            invoice_unlimited: true,
+            is_active: true,
+          },
+        ],
+        users: [
+          {
+            id: "user_test",
+            email: "teste@constil.com",
+            password: "password123",
+            full_name: "Teste User",
+            email_verified: true,
+            phone_verified: false,
+            credits: 50,
+          },
+        ],
+        subscriptions: [],
+        wallets: [],
+        otps: [],
+        transactions: [],
+        coupons: [
+          {
+            id: "cupom_10",
+            code: "DESCONTO10",
+            discount_percent: 10,
+            is_active: true,
+            usage_limit: 100,
+            usage_count: 5,
+          },
+          {
+            id: "cupom_20",
+            code: "VIP20",
+            discount_percent: 20,
+            is_active: true,
+            usage_limit: 50,
+            usage_count: 12,
+          },
+        ],
+        currentEndpoint: "packages",
+      };
+
+      // --- CONFIGURAÇÃO DOS ENDPOINTS (41 ROTAS) ---
+      const endpoints = {
+        // Públicos
+        packages: {
+          method: "GET",
+          path: "/packages",
+          auth: false,
+          isSendgrid: false,
+          title: "/packages",
+          description: "Lista todos os pacotes disponíveis",
+          body: null,
+          example: null,
+        },
+        register: {
+          method: "POST",
+          path: "/register",
+          auth: false,
+          isSendgrid: false,
+          title: "/register",
+          description: "Registra um novo usuário",
+          body: {
+            email: "novo@constil.com",
+            password: "senha123",
+            full_name: "Novo Usuário",
+            phone: "+5511999999999",
+            company_name: "Constil",
+          },
+          example: {
+            email: "novo@constil.com",
+            password: "senha123",
+            full_name: "Novo Usuário",
+          },
+        },
+        login: {
+          method: "POST",
+          path: "/login",
+          auth: false,
+          isSendgrid: false,
+          title: "/login",
+          description: "Login de usuário",
+          body: { email: "teste@constil.com", password: "password123" },
+          example: { email: "teste@constil.com", password: "password123" },
+        },
+        "send-signup-otp": {
+          method: "POST",
+          path: "/send-signup-otp",
+          auth: false,
+          isSendgrid: false,
+          title: "/send-signup-otp",
+          description: "Envia OTP para verificação de email",
+          body: { email: "novo@constil.com" },
+          example: { email: "novo@constil.com" },
+        },
+        "forgot-password": {
+          method: "POST",
+          path: "/forgot-password",
+          auth: false,
+          isSendgrid: false,
+          title: "/forgot-password",
+          description: "Solicita recuperação de senha",
+          body: { email: "teste@constil.com" },
+          example: { email: "teste@constil.com" },
+        },
+        "verify-otp": {
+          method: "POST",
+          path: "/verify-otp",
+          auth: false,
+          isSendgrid: false,
+          title: "/verify-otp",
+          description: "Verifica código OTP",
+          body: { email: "novo@constil.com", otp: "123456" },
+          example: { email: "novo@constil.com", otp: "123456" },
+        },
+        "reset-password": {
+          method: "POST",
+          path: "/reset-password",
+          auth: false,
+          isSendgrid: false,
+          title: "/reset-password",
+          description: "Reseta a senha com OTP",
+          body: {
+            email: "teste@constil.com",
+            otp: "123456",
+            password: "novaSenha123",
+          },
+          example: {
+            email: "teste@constil.com",
+            otp: "123456",
+            password: "novaSenha123",
+          },
+        },
+        google: {
+          method: "POST",
+          path: "/google",
+          auth: false,
+          isSendgrid: false,
+          title: "/google",
+          description: "Autenticação com Google (simulada)",
+          body: { id_token: "google_token_simulado" },
+          example: { id_token: "google_token_simulado" },
+        },
+        "auth/google": {
+          method: "POST",
+          path: "/auth/google",
+          auth: false,
+          isSendgrid: false,
+          title: "/auth/google",
+          description: "Autenticação com Google (alias)",
+          body: { id_token: "google_token_simulado" },
+          example: { id_token: "google_token_simulado" },
+        },
+        // SendGrid
+        "sendgrid/health": {
+          method: "GET",
+          path: "/sendgrid/health",
+          auth: false,
+          isSendgrid: true,
+          title: "📧 SendGrid Health",
+          description: "Health check do SendGrid",
+          body: null,
+          example: null,
+        },
+        "sendgrid/status": {
+          method: "GET",
+          path: "/sendgrid/status",
+          auth: false,
+          isSendgrid: true,
+          title: "📧 SendGrid Status",
+          description: "Status do serviço SendGrid",
+          body: null,
+          example: null,
+        },
+        "sendgrid/send": {
+          method: "POST",
+          path: "/sendgrid/send",
+          auth: false,
+          isSendgrid: true,
+          title: "📧 Enviar Email",
+          description: "Envia um email simples via SendGrid",
+          body: {
+            to: "fabiofb312@gmail.com",
+            subject: "🧪 Teste Ultimate",
+            text: "Teste via SendGrid Ultimate",
+            html: "<h1>🧪 Teste Ultimate</h1><p>Enviado via SendGrid!</p>",
+            sandbox: true,
+          },
+          example: {
+            to: "fabiofb312@gmail.com",
+            subject: "🧪 Teste Ultimate",
+            text: "Teste via SendGrid Ultimate",
+            html: "<h1>🧪 Teste Ultimate</h1><p>Enviado via SendGrid!</p>",
+          },
+        },
+        "sendgrid/send-real": {
+          method: "POST",
+          path: "/sendgrid/send-real",
+          auth: false,
+          isSendgrid: true,
+          title: "📧 Enviar Email REAL",
+          description: "Envia um email REAL (sem sandbox)",
+          body: {
+            to: "fabiofb312@gmail.com",
+            subject: "🚀 REAL - Ultimate",
+            text: "Email real via SendGrid Ultimate",
+            html: "<h1>🚀 REAL Ultimate</h1><p>Email entregue!</p>",
+          },
+          example: {
+            to: "fabiofb312@gmail.com",
+            subject: "🚀 REAL - Ultimate",
+            text: "Email real via SendGrid Ultimate",
+            html: "<h1>🚀 REAL Ultimate</h1><p>Email entregue!</p>",
+          },
+        },
+        "sendgrid/otp": {
+          method: "POST",
+          path: "/sendgrid/otp",
+          auth: false,
+          isSendgrid: true,
+          title: "📧 Enviar OTP",
+          description: "Envia código OTP via SendGrid",
+          body: {
+            to: "fabiofb312@gmail.com",
+            code: "123456",
+            name: "Usuário",
+            validity: "5",
+            sandbox: true,
+          },
+          example: {
+            to: "fabiofb312@gmail.com",
+            code: "123456",
+            name: "Usuário",
+            validity: "5",
+          },
+        },
+        "sendgrid/estimate": {
+          method: "POST",
+          path: "/sendgrid/estimate",
+          auth: false,
+          isSendgrid: true,
+          title: "📧 Enviar Orçamento",
+          description: "Envia orçamento via SendGrid",
+          body: {
+            to: "fabiofb312@gmail.com",
+            name: "João Silva",
+            reference: "EST-2026-001",
+            total: "12,450.00",
+            sandbox: true,
+          },
+          example: {
+            to: "fabiofb312@gmail.com",
+            name: "João Silva",
+            reference: "EST-2026-001",
+            total: "12,450.00",
+          },
+        },
+        "sendgrid/invoice": {
+          method: "POST",
+          path: "/sendgrid/invoice",
+          auth: false,
+          isSendgrid: true,
+          title: "📧 Enviar Fatura",
+          description: "Envia fatura via SendGrid",
+          body: {
+            to: "fabiofb312@gmail.com",
+            name: "Maria Oliveira",
+            invoiceNo: "INV-2026-001",
+            amount: "8,750.00",
+            sandbox: true,
+          },
+          example: {
+            to: "fabiofb312@gmail.com",
+            name: "Maria Oliveira",
+            invoiceNo: "INV-2026-001",
+            amount: "8,750.00",
+          },
+        },
+        "sendgrid/proposal": {
+          method: "POST",
+          path: "/sendgrid/proposal",
+          auth: false,
+          isSendgrid: true,
+          title: "📧 Enviar Proposta",
+          description: "Envia proposta via SendGrid",
+          body: {
+            to: "fabiofb312@gmail.com",
+            name: "Carlos Santos",
+            reference: "PROP-2026-001",
+            sandbox: true,
+          },
+          example: {
+            to: "fabiofb312@gmail.com",
+            name: "Carlos Santos",
+            reference: "PROP-2026-001",
+          },
+        },
+        "sendgrid/welcome": {
+          method: "POST",
+          path: "/sendgrid/welcome",
+          auth: false,
+          isSendgrid: true,
+          title: "📧 Enviar Boas-Vindas",
+          description: "Envia email de boas-vindas via SendGrid",
+          body: {
+            to: "fabiofb312@gmail.com",
+            name: "Ana Paula",
+            company: "Constil",
+            role: "Cliente",
+            sandbox: true,
+          },
+          example: {
+            to: "fabiofb312@gmail.com",
+            name: "Ana Paula",
+            company: "Constil",
+            role: "Cliente",
+          },
+        },
+        "sendgrid/reset-password": {
+          method: "POST",
+          path: "/sendgrid/reset-password",
+          auth: false,
+          isSendgrid: true,
+          title: "📧 Enviar Reset Password",
+          description: "Envia email de redefinição de senha via SendGrid",
+          body: {
+            to: "fabiofb312@gmail.com",
+            name: "Roberto Lima",
+            code: "RESET-123",
+            link: "https://constil.com/reset",
+            sandbox: true,
+          },
+          example: {
+            to: "fabiofb312@gmail.com",
+            name: "Roberto Lima",
+            code: "RESET-123",
+            link: "https://constil.com/reset",
+          },
+        },
+        "sendgrid/confirm": {
+          method: "POST",
+          path: "/sendgrid/confirm",
+          auth: false,
+          isSendgrid: true,
+          title: "📧 Enviar Confirmação",
+          description: "Envia email de confirmação via SendGrid",
+          body: {
+            to: "fabiofb312@gmail.com",
+            name: "Carla Souza",
+            link: "https://constil.com/confirm/abc123",
+            sandbox: true,
+          },
+          example: {
+            to: "fabiofb312@gmail.com",
+            name: "Carla Souza",
+            link: "https://constil.com/confirm/abc123",
+          },
+        },
+        "sendgrid/notification": {
+          method: "POST",
+          path: "/sendgrid/notification",
+          auth: false,
+          isSendgrid: true,
+          title: "📧 Enviar Notificação",
+          description: "Envia notificação via SendGrid",
+          body: {
+            to: "fabiofb312@gmail.com",
+            title: "🚀 Ultimate Function!",
+            message: "SendGrid Ultimate integrado!",
+            name: "Usuário",
+            sandbox: true,
+          },
+          example: {
+            to: "fabiofb312@gmail.com",
+            title: "🚀 Ultimate Function!",
+            message: "SendGrid Ultimate integrado!",
+            name: "Usuário",
+          },
+        },
+        "sendgrid/simple": {
+          method: "POST",
+          path: "/sendgrid/simple",
+          auth: false,
+          isSendgrid: true,
+          title: "📧 Enviar Template Simples",
+          description: "Envia template simples via SendGrid",
+          body: {
+            to: "fabiofb312@gmail.com",
+            subject: "📧 Bem-vindo ao Ultimate!",
+            name: "Fábio",
+            message: "Sua conta foi criada com sucesso via Ultimate!",
+            buttonText: "Acessar",
+            buttonLink: "https://app.constil.com",
+            sandbox: true,
+          },
+          example: {
+            to: "fabiofb312@gmail.com",
+            subject: "📧 Bem-vindo ao Ultimate!",
+            name: "Fábio",
+            message: "Sua conta foi criada com sucesso via Ultimate!",
+            buttonText: "Acessar",
+            buttonLink: "https://app.constil.com",
+          },
+        },
+        "sendgrid/bulk": {
+          method: "POST",
+          path: "/sendgrid/bulk",
+          auth: false,
+          isSendgrid: true,
+          title: "📧 Enviar Múltiplos Emails",
+          description: "Envia múltiplos emails via SendGrid",
+          body: {
+            emails: [
+              {
+                to: "teste1@constil.com",
+                subject: "Bulk 1",
+                text: "Mensagem 1",
+              },
+              {
+                to: "teste2@constil.com",
+                subject: "Bulk 2",
+                text: "Mensagem 2",
+              },
+            ],
+            sandbox: true,
+          },
+          example: {
+            emails: [
+              {
+                to: "teste1@constil.com",
+                subject: "Bulk 1",
+                text: "Mensagem 1",
+              },
+              {
+                to: "teste2@constil.com",
+                subject: "Bulk 2",
+                text: "Mensagem 2",
+              },
+            ],
+          },
+        },
+        // Autenticados
+        credits: {
+          method: "GET",
+          path: "/credits",
+          auth: true,
+          isSendgrid: false,
+          title: "/credits",
+          description: "Obtém créditos do usuário",
+          body: null,
+          example: null,
+        },
+        get_profile: {
+          method: "GET",
+          path: "/get_profile",
+          auth: true,
+          isSendgrid: false,
+          title: "/get_profile",
+          description: "Obtém perfil do usuário (formato Django)",
+          body: null,
+          example: null,
+        },
+        list_invoices: {
+          method: "GET",
+          path: "/list_invoices",
+          auth: true,
+          isSendgrid: false,
+          title: "/list_invoices",
+          description: "Lista faturas do usuário",
+          body: null,
+          example: null,
+        },
+        wallet: {
+          method: "GET",
+          path: "/wallet",
+          auth: true,
+          isSendgrid: false,
+          title: "/wallet",
+          description: "Obtém carteira de créditos",
+          body: null,
+          example: null,
+        },
+        subscription: {
+          method: "GET",
+          path: "/subscription",
+          auth: true,
+          isSendgrid: false,
+          title: "/subscription",
+          description: "Obtém assinatura do usuário",
+          body: null,
+          example: null,
+        },
+        "start-free": {
+          method: "POST",
+          path: "/start-free",
+          auth: true,
+          isSendgrid: false,
+          title: "/start-free 🆓",
+          description: "Ativa o plano free",
+          body: {},
+          example: {},
+        },
+        "check-free-eligibility": {
+          method: "GET",
+          path: "/check-free-eligibility",
+          auth: true,
+          isSendgrid: false,
+          title: "/check-free-eligibility",
+          description: "Verifica elegibilidade para plano free",
+          body: null,
+          example: null,
+        },
+        "start-trial": {
+          method: "POST",
+          path: "/start-trial",
+          auth: true,
+          isSendgrid: false,
+          title: "/start-trial",
+          description: "Inicia período de trial",
+          body: {
+            package_id: "pkg_basic",
+            success_url: "https://app.constil.com/success",
+            cancel_url: "https://app.constil.com/cancel",
+          },
+          example: { package_id: "pkg_basic" },
+        },
+        "verify-trial": {
+          method: "POST",
+          path: "/verify-trial",
+          auth: true,
+          isSendgrid: false,
+          title: "/verify-trial",
+          description: "Verifica ativação do trial",
+          body: { session_id: "cs_test_123" },
+          example: { session_id: "cs_test_123" },
+        },
+        "template-access": {
+          method: "GET",
+          path: "/template-access",
+          auth: true,
+          isSendgrid: false,
+          title: "/template-access",
+          description: "Obtém níveis de acesso a templates",
+          body: null,
+          example: null,
+        },
+        "credit-config": {
+          method: "GET",
+          path: "/credit-config",
+          auth: true,
+          isSendgrid: false,
+          title: "/credit-config",
+          description: "Configurações de créditos",
+          body: null,
+          example: null,
+        },
+        "consume-credit": {
+          method: "POST",
+          path: "/consume-credit",
+          auth: true,
+          isSendgrid: false,
+          title: "/consume-credit",
+          description: "Consome créditos do usuário",
+          body: { action_type: "invoice", reference_id: "inv_123" },
+          example: { action_type: "invoice", reference_id: "inv_123" },
+        },
+        "invoice-generated": {
+          method: "POST",
+          path: "/invoice-generated",
+          auth: true,
+          isSendgrid: false,
+          title: "/invoice-generated (legacy)",
+          description: "Marca invoice gerada (legacy)",
+          body: {},
+          example: {},
+        },
+        "create-checkout": {
+          method: "POST",
+          path: "/create-checkout",
+          auth: true,
+          isSendgrid: false,
+          title: "/create-checkout",
+          description: "Cria checkout Stripe",
+          body: {
+            package_id: "pkg_basic",
+            billing_type: "one_time",
+            coupon_code: "DESCONTO10",
+          },
+          example: {
+            package_id: "pkg_basic",
+            billing_type: "one_time",
+            coupon_code: "DESCONTO10",
+          },
+        },
+        "verify-payment": {
+          method: "POST",
+          path: "/verify-payment",
+          auth: true,
+          isSendgrid: false,
+          title: "/verify-payment",
+          description: "Verifica pagamento Stripe",
+          body: { session_id: "cs_test_123" },
+          example: { session_id: "cs_test_123" },
+        },
+        "validate-coupon": {
+          method: "POST",
+          path: "/validate-coupon",
+          auth: true,
+          isSendgrid: false,
+          title: "/validate-coupon",
+          description: "Valida cupom de desconto",
+          body: { coupon_code: "DESCONTO10", package_id: "pkg_basic" },
+          example: { coupon_code: "DESCONTO10", package_id: "pkg_basic" },
+        },
+      };
+
+      // --- FUNÇÕES DO SIMULADOR ---
+
+      function selectEndpoint(key) {
+        state.currentEndpoint = key;
+        document
+          .querySelectorAll(".endpoint-btn")
+          .forEach((el) => el.classList.remove("active"));
+        document
+          .querySelector(`.endpoint-btn[data-endpoint="${key}"]`)
+          ?.classList.add("active");
+        renderEndpoint(key);
+      }
+
+      function renderEndpoint(key) {
+        const ep = endpoints[key];
+        if (!ep) return;
+
+        document.getElementById("endpointTitle").textContent = ep.title;
+        document.getElementById("endpointPath").textContent =
+          `${ep.method} /user-api-test${ep.path}`;
+
+        const badge = document.getElementById("authBadge");
+        const sgBadge = document.getElementById("sendgridBadge");
+
+        if (ep.isSendgrid) {
+          badge.textContent = "📧 SendGrid";
+          badge.className = "pill sendgrid";
+          sgBadge.style.display = "inline-block";
+        } else if (ep.auth) {
+          badge.textContent = "🔒 Autenticado";
+          badge.className = "pill active";
+          sgBadge.style.display = "none";
+        } else {
+          badge.textContent = "🔓 Público";
+          badge.className = "pill";
+          sgBadge.style.display = "none";
+        }
+
+        const container = document.getElementById("requestBodyContainer");
+
+        if (ep.method === "GET" || !ep.body) {
+          container.innerHTML = `
+                    <div class="text-muted" style="padding:6px 0;">
+                        <span class="pill">${ep.method}</span> Este endpoint não requer corpo de requisição.
+                        ${ep.description ? `<br><span style="font-size:12px;color:#8896a6;">${ep.description}</span>` : ""}
+                    </div>
+                `;
+        } else {
+          let jsonStr = JSON.stringify(ep.body, null, 2);
+          if (ep.isSendgrid && !ep.body.sandbox) {
+            try {
+              const parsed = JSON.parse(jsonStr);
+              parsed.sandbox = state.isSandbox;
+              jsonStr = JSON.stringify(parsed, null, 2);
+            } catch (e) {}
+          }
+          container.innerHTML = `
+                    <div class="form-group">
+                        <label>📦 Corpo da Requisição (JSON)</label>
+                        <textarea id="requestBody">${jsonStr}</textarea>
+                    </div>
+                    <div class="text-muted" style="font-size:11px;margin-top:-6px;">
+                        ${ep.description || ""}
+                        ${ep.isSendgrid ? `<br><span style="color:#bb8fce;">📧 Sandbox: ${state.isSandbox ? "ATIVADO (simulação)" : "DESATIVADO (entrega real)"}</span>` : ""}
+                    </div>
+                `;
+        }
+
+        const exampleBtn = document.getElementById("exampleBtn");
+        exampleBtn.style.display = ep.example ? "inline-block" : "none";
+      }
+
+      function loadExample() {
+        const ep = endpoints[state.currentEndpoint];
+        if (!ep || !ep.example) return;
+        const textarea = document.getElementById("requestBody");
+        if (textarea) {
+          let example = JSON.parse(JSON.stringify(ep.example));
+          if (ep.isSendgrid) {
+            example.sandbox = state.isSandbox;
+          }
+          textarea.value = JSON.stringify(example, null, 2);
+        }
+      }
+
+      function toggleSandbox() {
+        state.isSandbox = !state.isSandbox;
+        const sw = document.getElementById("sandboxSwitch");
+        const label = document.getElementById("sandboxLabel");
+        const status = document.getElementById("sandboxStatus");
+
+        if (state.isSandbox) {
+          sw.classList.add("active");
+          label.textContent = "🔒 SANDBOX";
+          status.textContent = "(simulação)";
+        } else {
+          sw.classList.remove("active");
+          label.textContent = "🚀 REAL";
+          status.textContent = "(entrega real!)";
+        }
+
+        const ep = endpoints[state.currentEndpoint];
+        if (ep && ep.isSendgrid) {
+          const textarea = document.getElementById("requestBody");
+          if (textarea) {
+            try {
+              const data = JSON.parse(textarea.value);
+              data.sandbox = state.isSandbox;
+              textarea.value = JSON.stringify(data, null, 2);
+            } catch (e) {}
+          }
+          renderEndpoint(state.currentEndpoint);
+        }
+      }
+
+      function getBaseUrl() {
+        return document.getElementById("baseUrl").value.replace(/\/+$/, "");
+      }
+
+      // --- STATUS DA API ---
+
+      async function checkHealth() {
+        const dot = document.getElementById("statusDot");
+        const text = document.getElementById("statusText");
+        const badge = document.getElementById("statusBadge");
+
+        dot.className = "status-dot checking";
+        text.textContent = "Verificando...";
+        badge.className = "badge badge-checking";
+        badge.textContent = "⏳ Verificando...";
+
+        try {
+          const url = `${getBaseUrl()}/sendgrid/health`;
+          const response = await fetch(url);
+          const data = await response.json();
+
+          if (response.ok && data.status === "healthy") {
+            state.isOnline = true;
+            dot.className = "status-dot online";
+            text.textContent = "🟢 Online";
+            badge.className = "badge badge-online";
+            badge.textContent = "🟢 Online";
+            addLog("✅ API Online - Health check passou", "success");
+          } else {
+            state.isOnline = false;
+            dot.className = "status-dot offline";
+            text.textContent = "🔴 Offline";
+            badge.className = "badge badge-offline";
+            badge.textContent = "🔴 Offline";
+            addLog("❌ API Offline - Health check falhou", "error");
+          }
+        } catch (error) {
+          state.isOnline = false;
+          dot.className = "status-dot offline";
+          text.textContent = "🔴 Offline";
+          badge.className = "badge badge-offline";
+          badge.textContent = "🔴 Offline";
+          addLog(`❌ Erro ao verificar saúde: ${error.message}`, "error");
+        }
+      }
+
+      function updateStatusDisplay() {
+        const tokenEl = document.getElementById("tokenDisplay");
+        const userEl = document.getElementById("userDisplay");
+        const pkgEl = document.getElementById("packageCount");
+
+        tokenEl.textContent = state.token
+          ? `${state.token.substring(0, 20)}...`
+          : "Nenhum";
+        tokenEl.style.color = state.token ? "#4caf50" : "#8896a6";
+        userEl.textContent = state.userEmail || "Não autenticado";
+        userEl.style.color = state.userEmail ? "#4caf50" : "#8896a6";
+        pkgEl.textContent = state.packages.length;
+      }
+
+      // --- ENVIAR REQUISIÇÃO ---
+
+      async function sendRequest() {
+        const btn = document.getElementById("sendBtn");
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> Enviando...';
+
+        const ep = endpoints[state.currentEndpoint];
+        let body = null;
+        const textarea = document.getElementById("requestBody");
+        if (textarea) {
+          try {
+            body = JSON.parse(textarea.value);
+          } catch (e) {
+            addLog("❌ Erro: JSON inválido");
+            btn.disabled = false;
+            btn.innerHTML = "🚀 Enviar Requisição";
+            return;
+          }
+        }
+
+        const url = `${getBaseUrl()}${ep.path}`;
+        const options = {
+          method: ep.method,
+          headers: { "Content-Type": "application/json" },
+        };
+
+        if (body && ep.method !== "GET") {
+          options.body = JSON.stringify(body);
+        }
+
+        if (ep.auth && state.token) {
+          options.headers["Authorization"] = `Bearer ${state.token}`;
+        }
+
+        const startTime = Date.now();
+
+        try {
+          const response = await fetch(url, options);
+          const elapsed = Date.now() - startTime;
+          let data;
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            data = await response.json();
+          } else {
+            data = await response.text();
+          }
+
+          const result = {
+            status: response.status,
+            statusText: response.statusText,
+            elapsed: `${elapsed}ms`,
+            url,
+            method: ep.method,
+            timestamp: new Date().toISOString(),
+            sandbox: state.isSandbox,
+            data: data,
+          };
+
+          const area = document.getElementById("responseArea");
+          const statusClass =
+            result.status >= 200 && result.status < 300 ? "success" : "error";
+          const dataStr =
+            typeof data === "string" ? data : JSON.stringify(data, null, 2);
+          area.innerHTML = `
+                    <div>
+                        <span class="status ${statusClass}">${result.status}</span>
+                        <span style="color:#8896a6;font-size:11px;margin-left:8px;">${elapsed}ms</span>
+                        ${result.sandbox ? '<span style="color:#ffb74d;font-size:10px;margin-left:8px;">🔒 Sandbox</span>' : ""}
+                        ${ep.isSendgrid ? '<span style="color:#bb8fce;font-size:10px;margin-left:8px;">📧 SendGrid</span>' : ""}
+                    </div>
+                    <div style="margin-top:6px;">${dataStr}</div>
+                `;
+
+          document.getElementById("responseTime").textContent = `${elapsed}ms`;
+
+          const logStatus =
+            result.status >= 200 && result.status < 300 ? "success" : "error";
+          const methodType = ep.isSendgrid ? "SENDGRID" : ep.method;
+          addLog(
+            `${methodType} ${ep.path} → ${result.status} ${elapsed}ms`,
+            logStatus,
+          );
+
+          if (data?.access_token) {
+            state.token = data.access_token;
+            state.userId = data.user?.id || null;
+            state.userEmail = data.user?.email || null;
+            state.isAuthenticated = true;
+            updateStatusDisplay();
+          }
+        } catch (error) {
+          const area = document.getElementById("responseArea");
+          area.innerHTML = `
+                    <div>
+                        <span class="status error">❌ Erro</span>
+                    </div>
+                    <div style="margin-top:6px;color:#ef5350;">${error.message}</div>
+                `;
+          addLog(`❌ Erro: ${error.message}`, "error");
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = "🚀 Enviar Requisição";
+      }
+
+      // --- UI HELPERS ---
+
+      function addLog(message, type = "info") {
+        const time = new Date().toLocaleTimeString();
+        const logEntry = { time, message, type };
+        state.logs.push(logEntry);
+        renderLogs();
+      }
+
+      function renderLogs() {
+        const container = document.getElementById("logsContainer");
+        const countEl = document.getElementById("logCount");
+        countEl.textContent = `${state.logs.length} entradas`;
+
+        if (state.logs.length === 0) {
+          container.innerHTML = `<div class="log-entry text-muted">Nenhum log ainda.</div>`;
+          return;
+        }
+
+        const html = state.logs
+          .map((log) => {
+            const isError = log.type === "error";
+            const isSuccess = log.type === "success";
+            const color = isError
+              ? "#ef5350"
+              : isSuccess
+                ? "#4caf50"
+                : "#8896a6";
+            return `
+                    <div class="log-entry">
+                        <span class="time">[${log.time}]</span>
+                        <span style="color:${color}">${log.message}</span>
+                    </div>
+                `;
+          })
+          .join("");
+
+        container.innerHTML = html;
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function clearLogs() {
+        state.logs = [];
+        renderLogs();
+      }
+
+      function resetState() {
+        state.token = null;
+        state.userId = null;
+        state.userEmail = null;
+        state.isAuthenticated = false;
+        state.logs = [];
+        state.subscriptions = [];
+        state.wallets = [];
+        state.otps = [];
+        state.transactions = [];
+        updateStatusDisplay();
+        renderLogs();
+        document.getElementById("responseArea").innerHTML =
+          `<span class="text-muted">Aguardando requisição...</span>`;
+        document.getElementById("responseTime").textContent = "";
+        selectEndpoint("packages");
+        addLog("🔄 Estado resetado");
+      }
+
+      // --- INIT ---
+
+      document.addEventListener("DOMContentLoaded", () => {
+        selectEndpoint("packages");
+        updateStatusDisplay();
+        checkHealth();
+
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+            sendRequest();
+          }
+        });
+
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "s" && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            toggleSandbox();
+          }
+        });
+      });
+
+      // Tornar funções globais
+      window.selectEndpoint = selectEndpoint;
+      window.sendRequest = sendRequest;
+      window.loadExample = loadExample;
+      window.clearLogs = clearLogs;
+      window.resetState = resetState;
+      window.toggleSandbox = toggleSandbox;
+      window.checkHealth = checkHealth;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1417 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CONSTIL API Explorer — user-api-v1-5</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #f5f7fa;
+        color: #2c3e50;
+        min-height: 100vh;
+      }
+      .header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        color: white;
+        padding: 14px 20px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .header h1 {
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .header p {
+        opacity: 0.85;
+        font-size: 0.7rem;
+        margin-top: 3px;
+      }
+      .header .status {
+        position: absolute;
+        right: 20px;
+        top: 14px;
+        font-size: 0.7rem;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-weight: 600;
+      }
+      .header .status.online {
+        background: #d4edda;
+        color: #155724;
+      }
+      .header .status.offline {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .header .status.checking {
+        background: #fff3cd;
+        color: #856404;
+      }
+      .toolbar {
+        background: white;
+        padding: 10px 16px;
+        border-bottom: 1px solid #e1e8ed;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        position: sticky;
+        top: 62px;
+        z-index: 99;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+      .toolbar-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+      }
+      .toolbar label {
+        font-weight: 600;
+        font-size: 0.7rem;
+        min-width: 80px;
+      }
+      .toolbar input {
+        flex: 1;
+        min-width: 0;
+        padding: 7px 10px;
+        background: #f8f9fa;
+        border: 1px solid #d1d9e6;
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 0.72rem;
+      }
+      .toolbar input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        background: white;
+      }
+      .btn {
+        border: none;
+        padding: 7px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 0.72rem;
+        transition: all 0.15s;
+      }
+      .btn:active {
+        transform: scale(0.97);
+      }
+      .btn-primary {
+        background: #3b82f6;
+        color: white;
+      }
+      .btn-primary:hover {
+        background: #2563eb;
+      }
+      .btn-danger {
+        background: #e74c3c;
+        color: white;
+      }
+      .btn-danger:hover {
+        background: #c0392b;
+      }
+      .btn-warning {
+        background: #f39c12;
+        color: white;
+      }
+      .btn-warning:hover {
+        background: #d68910;
+      }
+      .btn-success {
+        background: #27ae60;
+        color: white;
+      }
+      .btn-success:hover {
+        background: #229954;
+      }
+      .token-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.6rem;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .token-badge.ok {
+        background: #d4edda;
+        color: #155724;
+      }
+      .token-badge.empty {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .container {
+        display: flex;
+        flex-direction: column;
+        min-height: calc(100vh - 190px);
+      }
+      .sidebar {
+        background: white;
+        border-bottom: 1px solid #e1e8ed;
+        max-height: 600px;
+        overflow-y: auto;
+      }
+      .nav-category {
+        padding: 8px 16px 4px;
+        color: #7f8c8d;
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 700;
+        background: #fafbfc;
+        border-top: 1px solid #ecf0f1;
+      }
+      .nav-category:first-child {
+        border-top: none;
+      }
+      .nav-category.disabled {
+        color: #b91c1c;
+        background: #fef2f2;
+        text-decoration: line-through;
+      }
+      .nav-items {
+        display: flex;
+        overflow-x: auto;
+        padding: 6px 10px;
+        gap: 6px;
+      }
+      .nav-item {
+        padding: 7px 12px;
+        cursor: pointer;
+        border-radius: 16px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.7rem;
+        color: #34495e;
+        background: #f8f9fa;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: all 0.15s;
+      }
+      .nav-item:hover {
+        background: #ecf0f1;
+      }
+      .nav-item.active {
+        background: #3b82f6;
+        color: white;
+      }
+      .nav-item.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: #f8f8f8;
+        text-decoration: line-through;
+      }
+      .nav-item.disabled:hover {
+        background: #f8f8f8;
+      }
+      .nav-item .method {
+        font-weight: bold;
+        font-size: 0.56rem;
+        padding: 2px 6px;
+        border-radius: 8px;
+      }
+      .nav-item .method.post {
+        background: #007bff20;
+        color: #004085;
+      }
+      .nav-item .method.get {
+        background: #28a74520;
+        color: #155724;
+      }
+      .nav-item .method.patch {
+        background: #f39c1220;
+        color: #7d4e00;
+      }
+      .nav-item .method.delete {
+        background: #e74c3c20;
+        color: #7a1a0f;
+      }
+      .nav-item.active .method {
+        background: rgba(255, 255, 255, 0.25);
+        color: white;
+      }
+      .main-content {
+        flex: 1;
+        padding: 16px;
+        background: #f5f7fa;
+      }
+      .endpoint-detail {
+        background: white;
+        border-radius: 14px;
+        margin-bottom: 16px;
+        border: 1px solid #e1e8ed;
+        overflow: hidden;
+      }
+      .endpoint-title {
+        padding: 12px 14px;
+        background: #fafbfc;
+        border-bottom: 1px solid #e1e8ed;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .method-badge {
+        font-weight: bold;
+        padding: 3px 9px;
+        border-radius: 14px;
+        font-size: 0.64rem;
+      }
+      .method-badge.post {
+        background: #cce5ff;
+        color: #004085;
+      }
+      .method-badge.get {
+        background: #d4edda;
+        color: #155724;
+      }
+      .method-badge.patch {
+        background: #fff3cd;
+        color: #856404;
+      }
+      .method-badge.delete {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .endpoint-path {
+        font-family: monospace;
+        font-size: 0.7rem;
+        color: #2c3e50;
+        flex: 1;
+        word-break: break-all;
+      }
+      .badge {
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.56rem;
+        font-weight: 600;
+      }
+      .badge.public {
+        background: #d4edda;
+        color: #155724;
+      }
+      .badge.protected {
+        background: #fff3cd;
+        color: #856404;
+      }
+      .badge.admin {
+        background: #f0e6ff;
+        color: #6b21a8;
+      }
+      .badge.webhook {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+      .badge.disabled {
+        background: #fee2e2;
+        color: #991b1b;
+        text-decoration: line-through;
+      }
+      .endpoint-body {
+        padding: 14px;
+      }
+      .form-group {
+        margin-bottom: 14px;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        font-size: 0.7rem;
+      }
+      .form-group textarea {
+        width: 100%;
+        padding: 9px 11px;
+        background: #f8f9fa;
+        border: 1px solid #d1d9e6;
+        border-radius: 10px;
+        color: #2c3e50;
+        font-family: monospace;
+        font-size: 0.72rem;
+        resize: vertical;
+        min-height: 110px;
+      }
+      .form-group textarea:focus {
+        outline: none;
+        border-color: #3b82f6;
+        background: white;
+      }
+      .description {
+        font-size: 0.68rem;
+        color: #7f8c8d;
+        margin-bottom: 12px;
+        padding: 8px 10px;
+        background: #f8f9fa;
+        border-left: 3px solid #3b82f6;
+        border-radius: 6px;
+      }
+      .description.admin {
+        border-left-color: #9b59b6;
+        background: #faf5ff;
+        color: #4a1d6e;
+      }
+      .btn-send {
+        background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        color: white;
+        border: none;
+        padding: 11px 22px;
+        border-radius: 24px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.82rem;
+        width: 100%;
+      }
+      .btn-send:active {
+        transform: scale(0.98);
+      }
+      .btn-send:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .response-area {
+        margin-top: 16px;
+        border-top: 1px solid #e1e8ed;
+        padding-top: 14px;
+      }
+      .response-status {
+        padding: 7px 11px;
+        border-radius: 10px;
+        margin-bottom: 9px;
+        font-size: 0.7rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .response-status.success {
+        background: #d4edda;
+        border-left: 3px solid #27ae60;
+        color: #155724;
+      }
+      .response-status.error {
+        background: #f8d7da;
+        border-left: 3px solid #e74c3c;
+        color: #721c24;
+      }
+      .response-status.warn {
+        background: #fff3cd;
+        border-left: 3px solid #f39c12;
+        color: #856404;
+      }
+      .response-status .actions {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .response-status .actions button {
+        padding: 3px 8px;
+        font-size: 0.6rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        background: rgba(0, 0, 0, 0.08);
+        color: inherit;
+        font-weight: 600;
+      }
+      .response-status .actions button:hover {
+        background: rgba(0, 0, 0, 0.15);
+      }
+      .response-body {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 11px;
+        overflow-x: auto;
+        font-family: monospace;
+        font-size: 0.66rem;
+        white-space: pre-wrap;
+        word-break: break-word;
+        max-height: 400px;
+        overflow-y: auto;
+      }
+      .diagnostic-panel {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 12px;
+        border-radius: 10px;
+        font-family: monospace;
+        font-size: 0.65rem;
+        margin-top: 10px;
+        max-height: 250px;
+        overflow-y: auto;
+        display: none;
+      }
+      .diagnostic-panel.open {
+        display: block;
+      }
+      .diagnostic-panel .line {
+        padding: 2px 0;
+        border-bottom: 1px solid #333;
+      }
+      .diagnostic-panel .line:last-child {
+        border-bottom: none;
+      }
+      .diagnostic-panel .label {
+        color: #569cd6;
+      }
+      .diagnostic-panel .value {
+        color: #ce9178;
+      }
+      .diagnostic-panel .ok {
+        color: #4ec9b0;
+      }
+      .diagnostic-panel .fail {
+        color: #f48771;
+      }
+      .headers-panel {
+        margin-top: 9px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 11px;
+        font-family: monospace;
+        font-size: 0.62rem;
+        max-height: 200px;
+        overflow-y: auto;
+        display: none;
+      }
+      .headers-panel.open {
+        display: block;
+      }
+      .headers-panel .header-line {
+        padding: 2px 0;
+        border-bottom: 1px solid #e1e8ed;
+      }
+      .headers-panel .header-line:last-child {
+        border-bottom: none;
+      }
+      .headers-panel .header-name {
+        color: #7f8c8d;
+        font-weight: 600;
+      }
+      .headers-panel .header-value {
+        color: #2c3e50;
+      }
+      .loading {
+        display: inline-block;
+        width: 13px;
+        height: 13px;
+        border: 2px solid white;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+        margin-left: 6px;
+        vertical-align: middle;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .no-endpoint {
+        text-align: center;
+        padding: 40px 20px;
+        color: #95a5a6;
+      }
+      .help-text {
+        font-size: 0.6rem;
+        color: #7f8c8d;
+        margin-top: 4px;
+      }
+      .info-box {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-left: 4px solid #3b82f6;
+        color: #1e40af;
+        padding: 10px 12px;
+        border-radius: 8px;
+        font-size: 0.72rem;
+        margin-bottom: 14px;
+      }
+      .warning-box {
+        background: #fff5f5;
+        border: 1px solid #f8d7da;
+        border-left: 4px solid #e74c3c;
+        color: #721c24;
+        padding: 10px 12px;
+        border-radius: 8px;
+        font-size: 0.72rem;
+        margin-bottom: 14px;
+        font-weight: 500;
+      }
+      @media (min-width: 768px) {
+        .toolbar {
+          flex-direction: row;
+          flex-wrap: wrap;
+        }
+        .toolbar-row {
+          flex: 1;
+          min-width: 260px;
+        }
+        .container {
+          flex-direction: row;
+        }
+        .sidebar {
+          width: 340px;
+          max-height: calc(100vh - 130px);
+          border-right: 1px solid #e1e8ed;
+          border-bottom: none;
+        }
+        .nav-items {
+          flex-direction: column;
+          gap: 2px;
+          padding: 4px 0;
+        }
+        .nav-item {
+          border-radius: 0;
+          border-left: 3px solid transparent;
+          background: transparent;
+          white-space: normal;
+          padding: 8px 14px;
+        }
+        .nav-item:hover {
+          background: #f0f4f8;
+        }
+        .nav-item.active {
+          background: #ebf5ff;
+          border-left-color: #3b82f6;
+          color: #2563eb;
+        }
+        .main-content {
+          padding: 22px;
+        }
+        .btn-send {
+          width: auto;
+          padding: 11px 26px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1><span>🚀</span> CONSTIL API Explorer</h1>
+      <p>
+        user-api-v1-5 — Auth · Credits · Packages · Payments · Subscriptions
+      </p>
+      <span id="serviceStatus" class="status checking">⏳ A verificar...</span>
+    </div>
+
+    <div class="toolbar">
+      <div class="toolbar-row">
+        <label>🌐 Base URL:</label>
+        <input
+          type="text"
+          id="baseUrl"
+          value="https://avppbvsxayehguepyjkb.supabase.co/functions/v1/user-api-v1-5"
+        />
+        <button class="btn btn-primary" onclick="saveBaseUrl()">Salvar</button>
+        <button class="btn btn-success" onclick="checkHealth()">
+          🩺 Testar /sendgrid/health
+        </button>
+      </div>
+      <div class="toolbar-row">
+        <label>👤 Email:</label>
+        <input type="text" id="userEmail" placeholder="teste@exemplo.com" />
+        <label>🔑 Senha:</label>
+        <input type="password" id="userPassword" placeholder="senha" />
+      </div>
+      <div class="toolbar-row">
+        <label>🎫 Access Token:</label>
+        <input type="text" id="accessToken" placeholder="(auto)" />
+        <span id="accessTokenBadge" class="token-badge empty">vazio</span>
+        <label>🔄 Refresh:</label>
+        <input type="text" id="refreshToken" placeholder="(auto)" />
+        <span id="refreshBadge" class="token-badge empty">vazio</span>
+        <button class="btn btn-warning" onclick="resetAll()">
+          🔄 Reset Tudo
+        </button>
+        <button class="btn btn-danger" onclick="clearTokens()">
+          🧹 Limpar Tokens
+        </button>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="sidebar" id="sidebar"></div>
+      <div class="main-content" id="mainContent">
+        <div class="no-endpoint">
+          <h3>📋 Selecione um endpoint</h3>
+          <p>Clique em qualquer rota à esquerda para testar</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ============================================================
+      // CONFIG — Project Ref
+      // ============================================================
+      const PROJECT_REF = "avppbvsxayehguepyjkb";
+      const DEFAULT_BASE_URL = `https://${PROJECT_REF}.supabase.co/functions/v1/user-api-v1-5`;
+
+      // ============================================================
+      // ENDPOINTS DO user-api-v1-5
+      // ============================================================
+      const endpoints = {
+        public: {
+          name: "🌐 Público (sem auth)",
+          items: [
+            {
+              method: "GET",
+              path: "/sendgrid/health",
+              description:
+                "Health check do serviço. Sempre funciona, sem auth.",
+              noBody: true,
+            },
+            {
+              method: "GET",
+              path: "/packages",
+              description: "Lista todos os pacotes ativos de créditos.",
+              noBody: true,
+            },
+            {
+              method: "POST",
+              path: "/register",
+              description:
+                "Registra novo usuário. Requer verificação de email depois.",
+              body: {
+                email: "teste@exemplo.com",
+                password: "MinhaS3nh@Forte",
+                full_name: "Teste User",
+                phone: "+244923456789",
+                company_name: "Teste Lda",
+                coupon_code: "",
+              },
+            },
+            {
+              method: "POST",
+              path: "/login",
+              description:
+                "Login com email/senha. Retorna access_token + refresh_token.",
+              body: { email: "teste@exemplo.com", password: "MinhaS3nh@Forte" },
+              save: {
+                accessToken: "access_token",
+                refreshToken: "refresh_token",
+              },
+            },
+            {
+              method: "POST",
+              path: "/send-signup-otp",
+              description: "Envia OTP para verificação de email no signup.",
+              body: { email: "teste@exemplo.com" },
+            },
+            {
+              method: "POST",
+              path: "/verify-otp",
+              description: "Verifica OTP do signup.",
+              body: { email: "teste@exemplo.com", otp: "123456" },
+            },
+            {
+              method: "POST",
+              path: "/forgot-password",
+              description: "Solicita reset de senha. Envia OTP por email.",
+              body: { email: "teste@exemplo.com" },
+            },
+            {
+              method: "POST",
+              path: "/reset-password",
+              description: "Redefine senha usando OTP.",
+              body: {
+                email: "teste@exemplo.com",
+                otp: "123456",
+                password: "NovaS3nh@Forte",
+              },
+            },
+            {
+              method: "POST",
+              path: "/google",
+              description: "Login com Google (id_token).",
+              body: {
+                id_token: "cole_o_id_token_aqui",
+                full_name: "Teste Google",
+                phone: "+244923456789",
+              },
+              save: {
+                accessToken: "access_token",
+                refreshToken: "refresh_token",
+              },
+            },
+          ],
+        },
+
+        profile: {
+          name: "👤 Perfil (autenticado)",
+          items: [
+            {
+              method: "GET",
+              path: "/get_profile",
+              description: "Retorna o perfil completo do usuário.",
+              requiresAuth: true,
+              noBody: true,
+            },
+            {
+              method: "GET",
+              path: "/list_invoices",
+              description: "Lista todas as faturas do usuário.",
+              requiresAuth: true,
+              noBody: true,
+            },
+          ],
+        },
+
+        credits: {
+          name: "💰 Créditos (autenticado)",
+          items: [
+            {
+              method: "GET",
+              path: "/credits",
+              description: "Saldo total de créditos.",
+              requiresAuth: true,
+              noBody: true,
+            },
+            {
+              method: "GET",
+              path: "/wallet",
+              description: "Wallet completa (invoice, estimate, ai_estimate).",
+              requiresAuth: true,
+              noBody: true,
+            },
+            {
+              method: "GET",
+              path: "/credit-config",
+              description: "Configuração de custo por ação.",
+              requiresAuth: true,
+              noBody: true,
+            },
+            {
+              method: "POST",
+              path: "/consume-credit",
+              description:
+                "Consome créditos. action_type: invoice | estimate | ai_estimate.",
+              requiresAuth: true,
+              body: { action_type: "invoice", reference_id: "test-ref-001" },
+            },
+          ],
+        },
+
+        subscriptions: {
+          name: "📦 Subscriptions (autenticado)",
+          items: [
+            {
+              method: "GET",
+              path: "/subscription",
+              description: "Assinatura ativa do usuário.",
+              requiresAuth: true,
+              noBody: true,
+            },
+            {
+              method: "GET",
+              path: "/template-access",
+              description: "Tier de templates liberado.",
+              requiresAuth: true,
+              noBody: true,
+            },
+            {
+              method: "GET",
+              path: "/check-free-eligibility",
+              description: "Verifica se o usuário pode ativar o plano free.",
+              requiresAuth: true,
+              noBody: true,
+            },
+            {
+              method: "POST",
+              path: "/start-free",
+              description: "Ativa plano free (uma única vez por usuário).",
+              requiresAuth: true,
+              body: {},
+            },
+            {
+              method: "POST",
+              path: "/start-trial",
+              description: "Inicia trial de um pacote.",
+              requiresAuth: true,
+              body: {
+                package_id: "cole_o_uuid_do_package",
+                success_url: "",
+                cancel_url: "",
+              },
+            },
+            {
+              method: "POST",
+              path: "/verify-trial",
+              description: "Ativa trial após checkout do Stripe.",
+              requiresAuth: true,
+              body: { session_id: "cs_test_xxx" },
+            },
+          ],
+        },
+
+        payments: {
+          name: "💳 Pagamentos (autenticado)",
+          items: [
+            {
+              method: "POST",
+              path: "/create-checkout",
+              description:
+                "Cria sessão de checkout Stripe para comprar pacote.",
+              requiresAuth: true,
+              body: {
+                package_id: "cole_o_uuid_do_package",
+                billing_type: "one_time",
+                coupon_code: "",
+                success_url: "",
+                cancel_url: "",
+              },
+            },
+            {
+              method: "POST",
+              path: "/verify-payment",
+              description:
+                "Verifica pagamento após checkout. Fallback do webhook.",
+              requiresAuth: true,
+              body: { session_id: "cs_test_xxx" },
+            },
+            {
+              method: "POST",
+              path: "/validate-coupon",
+              description: "Valida cupom e mostra preview de preço.",
+              requiresAuth: true,
+              body: {
+                coupon_code: "PROMO2025",
+                package_id: "cole_o_uuid_do_package",
+              },
+            },
+          ],
+        },
+
+        // ============================================================
+        // DESABILITADO — SendGrid
+        // ============================================================
+        sendgrid: {
+          name: "📧 SendGrid — DESABILITADO",
+          disabled: true,
+          items: [
+            {
+              method: "GET",
+              path: "/sendgrid/status",
+              description: "⚠️ DESABILITADO. Reative no index.ts para usar.",
+              requiresAuth: true,
+              admin: true,
+              disabled: true,
+              noBody: true,
+            },
+            {
+              method: "POST",
+              path: "/sendgrid/send",
+              description: "⚠️ DESABILITADO. Reative no index.ts para usar.",
+              requiresAuth: true,
+              admin: true,
+              disabled: true,
+              body: {},
+            },
+            {
+              method: "POST",
+              path: "/sendgrid/otp",
+              description: "⚠️ DESABILITADO. Reative no index.ts para usar.",
+              requiresAuth: true,
+              admin: true,
+              disabled: true,
+              body: {},
+            },
+            {
+              method: "POST",
+              path: "/sendgrid/welcome",
+              description: "⚠️ DESABILITADO. Reative no index.ts para usar.",
+              requiresAuth: true,
+              admin: true,
+              disabled: true,
+              body: {},
+            },
+            {
+              method: "POST",
+              path: "/sendgrid/bulk",
+              description: "⚠️ DESABILITADO. Reative no index.ts para usar.",
+              requiresAuth: true,
+              admin: true,
+              disabled: true,
+              body: {},
+            },
+          ],
+        },
+
+        webhook: {
+          name: "🔔 Webhook (Stripe)",
+          items: [
+            {
+              method: "POST",
+              path: "/stripe-webhook",
+              description:
+                "⚠️ Endpoint do Stripe. NÃO chame manualmente — Stripe envia com assinatura.",
+              requiresAuth: false,
+              noBody: true,
+              info: true,
+            },
+          ],
+        },
+      };
+
+      let currentEndpoint = null;
+      let lastResponse = null;
+
+      const LS = {
+        baseUrl: "constil_api_base_url",
+        email: "constil_api_email",
+        password: "constil_api_password",
+        accessToken: "constil_api_access_token",
+        refreshToken: "constil_api_refresh_token",
+      };
+
+      // ============================================================
+      // UTILS
+      // ============================================================
+      function setValue(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.value = value;
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      function flash(msg, type) {
+        const el = document.createElement("div");
+        el.textContent = msg;
+        el.style.cssText = `position:fixed;top:20px;right:20px;z-index:9999;padding:10px 16px;border-radius:10px;font-size:0.78rem;background:${type === "success" ? "#d4edda" : "#f8d7da"};color:${type === "success" ? "#155724" : "#721c24"};box-shadow:0 4px 12px rgba(0,0,0,0.1);`;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 3000);
+      }
+
+      function copyToClipboard(text, label) {
+        navigator.clipboard.writeText(text).then(
+          () => flash(`📋 ${label} copiado`, "success"),
+          () => flash("❌ Falha ao copiar", "error"),
+        );
+      }
+
+      // ============================================================
+      // STATE
+      // ============================================================
+      function loadState() {
+        setValue(
+          "baseUrl",
+          localStorage.getItem(LS.baseUrl) || DEFAULT_BASE_URL,
+        );
+        setValue("userEmail", localStorage.getItem(LS.email) || "");
+        setValue("userPassword", localStorage.getItem(LS.password) || "");
+        setValue("accessToken", localStorage.getItem(LS.accessToken) || "");
+        setValue("refreshToken", localStorage.getItem(LS.refreshToken) || "");
+        updateBadges();
+      }
+
+      function saveBaseUrl() {
+        localStorage.setItem(
+          LS.baseUrl,
+          document.getElementById("baseUrl").value,
+        );
+        flash("✅ Base URL salva", "success");
+        checkHealth();
+      }
+
+      function clearTokens() {
+        [LS.accessToken, LS.refreshToken].forEach((k) =>
+          localStorage.removeItem(k),
+        );
+        setValue("accessToken", "");
+        setValue("refreshToken", "");
+        updateBadges();
+        flash("🧹 Tokens limpos", "success");
+      }
+
+      function resetAll() {
+        Object.values(LS).forEach((k) => localStorage.removeItem(k));
+        ["accessToken", "refreshToken", "userEmail", "userPassword"].forEach(
+          (id) => setValue(id, ""),
+        );
+        loadState();
+        updateBadges();
+        flash("🔄 Estado resetado", "success");
+      }
+
+      function updateBadges() {
+        const at = document.getElementById("accessToken")?.value;
+        const rt = document.getElementById("refreshToken")?.value;
+        const atB = document.getElementById("accessTokenBadge");
+        const rtB = document.getElementById("refreshBadge");
+        if (atB) {
+          atB.textContent = at ? "✓ presente" : "vazio";
+          atB.className = "token-badge " + (at ? "ok" : "empty");
+        }
+        if (rtB) {
+          rtB.textContent = rt ? "✓ presente" : "vazio";
+          rtB.className = "token-badge " + (rt ? "ok" : "empty");
+        }
+      }
+
+      // ============================================================
+      // HEALTH
+      // ============================================================
+      async function checkHealth() {
+        const baseUrl = document
+          .getElementById("baseUrl")
+          .value.replace(/\/$/, "");
+        const statusEl = document.getElementById("serviceStatus");
+        statusEl.className = "status checking";
+        statusEl.textContent = "⏳ A verificar...";
+        try {
+          const res = await fetch(`${baseUrl}/sendgrid/health`);
+          const data = await res.json();
+          if (data.status === "healthy") {
+            statusEl.className = "status online";
+            statusEl.textContent = "🟢 Online";
+            return true;
+          }
+          statusEl.className = "status offline";
+          statusEl.textContent = "🔴 Offline";
+          return false;
+        } catch {
+          statusEl.className = "status offline";
+          statusEl.textContent = "🔴 Offline";
+          return false;
+        }
+      }
+
+      // ============================================================
+      // NAVIGATION
+      // ============================================================
+      function buildNavigation() {
+        const sidebar = document.getElementById("sidebar");
+        sidebar.innerHTML = "";
+        for (const [key, group] of Object.entries(endpoints)) {
+          const cat = document.createElement("div");
+          cat.className = "nav-category" + (group.disabled ? " disabled" : "");
+          cat.textContent = group.name;
+          sidebar.appendChild(cat);
+          const cont = document.createElement("div");
+          cont.className = "nav-items";
+          group.items.forEach((item, idx) => {
+            const el = document.createElement("div");
+            el.className = "nav-item" + (item.disabled ? " disabled" : "");
+            el.dataset.group = key;
+            el.dataset.idx = idx;
+            const methodClass = item.method.toLowerCase();
+            el.innerHTML = `<span class="method ${methodClass}">${item.method}</span><span>${item.path}</span>`;
+            if (!item.disabled) {
+              el.onclick = () => loadEndpoint(key, idx);
+            }
+            cont.appendChild(el);
+          });
+          sidebar.appendChild(cont);
+        }
+      }
+
+      function loadEndpoint(groupKey, idx) {
+        const ep = endpoints[groupKey].items[idx];
+        if (ep.disabled) {
+          flash("⚠️ Esta rota está desabilitada", "error");
+          return;
+        }
+        currentEndpoint = { groupKey, idx, ep };
+
+        document
+          .querySelectorAll(".nav-item")
+          .forEach((i) => i.classList.remove("active"));
+        const active = document.querySelector(
+          `.nav-item[data-group="${groupKey}"][data-idx="${idx}"]`,
+        );
+        if (active) active.classList.add("active");
+
+        let badge;
+        if (ep.info) badge = '<span class="badge webhook">WEBHOOK</span>';
+        else if (ep.admin) badge = '<span class="badge admin">ADMIN</span>';
+        else if (ep.requiresAuth)
+          badge = '<span class="badge protected">PROTECTED</span>';
+        else badge = '<span class="badge public">PUBLIC</span>';
+
+        let bodyHtml = "";
+        if (ep.body && !ep.noBody) {
+          const bodyStr = JSON.stringify(ep.body, null, 2);
+          bodyHtml = `<div class="form-group"><label>📦 Body (JSON)</label><textarea id="requestBody">${escapeHtml(bodyStr)}</textarea></div>`;
+        }
+
+        let infoHtml = "";
+        if (ep.info) {
+          infoHtml = `<div class="info-box">ℹ️ Este endpoint é chamado pelo Stripe, não por humanos. Para testar localmente, use o Stripe CLI: <code>stripe trigger checkout.session.completed</code></div>`;
+        }
+
+        const main = document.getElementById("mainContent");
+        main.innerHTML = `
+          <div class="endpoint-detail">
+            <div class="endpoint-title">
+              <span class="method-badge ${ep.method.toLowerCase()}">${ep.method}</span>
+              <span class="endpoint-path">${escapeHtml(ep.path)}</span>
+              ${badge}
+            </div>
+            <div class="endpoint-body">
+              ${infoHtml}
+              <div class="description ${ep.admin ? "admin" : ""}">${ep.description}</div>
+              ${bodyHtml}
+              <button class="btn-send" onclick="sendRequest()">🚀 Enviar Requisição</button>
+              <div id="responseArea" style="display:none;" class="response-area">
+                <div id="responseStatus" class="response-status"></div>
+                <div id="responseBody" class="response-body"></div>
+                <div id="headersPanel" class="headers-panel"></div>
+                <div id="diagnosticPanel" class="diagnostic-panel"></div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // ============================================================
+      // REQUEST
+      // ============================================================
+      async function sendRequest() {
+        if (!currentEndpoint) return;
+        const ep = currentEndpoint.ep;
+        const baseUrl = document
+          .getElementById("baseUrl")
+          .value.replace(/\/$/, "");
+        const url = `${baseUrl}${ep.path}`;
+        const accessToken = document.getElementById("accessToken")?.value || "";
+
+        let body = null;
+        if (!ep.noBody) {
+          const ta = document.getElementById("requestBody");
+          if (ta && ta.value.trim()) {
+            try {
+              body = JSON.parse(ta.value);
+            } catch {
+              body = { raw: ta.value };
+            }
+          }
+        }
+
+        const headers = { "Content-Type": "application/json" };
+        if (ep.requiresAuth && accessToken)
+          headers["Authorization"] = `Bearer ${accessToken}`;
+
+        const options = { method: ep.method, headers };
+        if (body && ep.method !== "GET") options.body = JSON.stringify(body);
+
+        await executeRequest(url, options, ep);
+      }
+
+      async function executeRequest(url, options, ep) {
+        const area = document.getElementById("responseArea");
+        const btn = area?.parentElement.querySelector(".btn-send");
+        const original = btn?.innerHTML || "";
+        if (btn) {
+          btn.innerHTML = '⏳ Enviando... <span class="loading"></span>';
+          btn.disabled = true;
+        }
+
+        const statusEl = document.getElementById("responseStatus");
+        const bodyEl = document.getElementById("responseBody");
+        const headersEl = document.getElementById("headersPanel");
+        const diagEl = document.getElementById("diagnosticPanel");
+
+        if (area) area.style.display = "block";
+        if (statusEl) {
+          statusEl.textContent = "🔄 Aguardando resposta...";
+          statusEl.className = "response-status";
+        }
+        if (bodyEl) bodyEl.innerHTML = "";
+        if (headersEl) headersEl.className = "headers-panel";
+        if (diagEl) diagEl.className = "diagnostic-panel";
+
+        const diagLines = [
+          `<span class="label">URL:</span> <span class="value">${escapeHtml(url)}</span>`,
+          `<span class="label">Method:</span> <span class="value">${options.method}</span>`,
+        ];
+        if (options.body) {
+          diagLines.push(
+            `<span class="label">Body:</span> <span class="value">${escapeHtml(options.body.substring(0, 200))}</span>`,
+          );
+        }
+
+        try {
+          const start = Date.now();
+          const res = await fetch(url, options);
+          const duration = Date.now() - start;
+          const ct = res.headers.get("content-type") || "";
+          const respHeaders = {};
+          res.headers.forEach((value, name) => (respHeaders[name] = value));
+
+          let data;
+          if (ct.includes("application/json")) data = await res.json();
+          else data = { message: await res.text() };
+
+          lastResponse = {
+            status: res.status,
+            data,
+            url,
+            headers: respHeaders,
+          };
+
+          diagLines.push(
+            `<span class="label">Status:</span> <span class="${res.ok ? "ok" : "fail"}">${res.status} ${res.statusText}</span>`,
+          );
+          diagLines.push(
+            `<span class="label">Duração:</span> <span class="value">${duration}ms</span>`,
+          );
+          diagLines.push(
+            `<span class="label">CORS:</span> <span class="${respHeaders["access-control-allow-origin"] ? "ok" : "fail"}">${escapeHtml(respHeaders["access-control-allow-origin"] || "(ausente)")}</span>`,
+          );
+          if (diagEl)
+            diagEl.innerHTML = diagLines
+              .map((l) => `<div class="line">${l}</div>`)
+              .join("");
+
+          const isSuccess = res.ok && data?.success !== false;
+          let statusClass = "error",
+            statusIcon = "❌";
+          if (res.ok && data?.success !== false) {
+            statusClass = "success";
+            statusIcon = "✅";
+          } else if (res.ok && data?.success === false) {
+            statusClass = "warn";
+            statusIcon = "⚠️";
+          }
+
+          let durationColor = "#27ae60";
+          if (duration > 1500) durationColor = "#e74c3c";
+          else if (duration > 500) durationColor = "#f39c12";
+
+          if (statusEl) {
+            statusEl.className = `response-status ${statusClass}`;
+            statusEl.innerHTML = `<span>${statusIcon} ${res.status} ${res.statusText} — <strong style="color:${durationColor}">${duration}ms</strong></span>
+              <span class="actions">
+                <button onclick="copyResponse()">📋 Copiar</button>
+                <button onclick="toggleHeaders()">🔍 Headers</button>
+                <button onclick="toggleDiagnostic()">🔬 Diagnóstico</button>
+                <button onclick="clearResponse()">🗑️ Limpar</button>
+              </span>`;
+          }
+
+          if (bodyEl)
+            bodyEl.innerHTML = `<pre class="response-pre">${escapeHtml(JSON.stringify(data, null, 2))}</pre>`;
+
+          if (isSuccess && ep.save) {
+            const inner = data.data ?? data;
+            if (ep.save.accessToken && inner[ep.save.accessToken]) {
+              setValue("accessToken", inner[ep.save.accessToken]);
+              localStorage.setItem(LS.accessToken, inner[ep.save.accessToken]);
+            }
+            if (ep.save.refreshToken && inner[ep.save.refreshToken]) {
+              setValue("refreshToken", inner[ep.save.refreshToken]);
+              localStorage.setItem(
+                LS.refreshToken,
+                inner[ep.save.refreshToken],
+              );
+            }
+            updateBadges();
+          }
+
+          if (headersEl) {
+            headersEl.innerHTML =
+              Object.entries(respHeaders)
+                .map(
+                  ([name, value]) =>
+                    `<div class="header-line"><span class="header-name">${escapeHtml(name)}</span>: <span class="header-value">${escapeHtml(value)}</span></div>`,
+                )
+                .join("") || "<em>Sem headers</em>";
+          }
+        } catch (err) {
+          if (statusEl) {
+            statusEl.className = "response-status error";
+            statusEl.innerHTML = `<span>❌ Erro de rede: ${escapeHtml(err.message)}</span>`;
+          }
+          if (bodyEl)
+            bodyEl.innerHTML = `<pre class="response-pre">URL: ${escapeHtml(url)}\n\nErro: ${escapeHtml(err.message)}</pre>`;
+          if (diagEl) {
+            diagEl.className = "diagnostic-panel open";
+            diagEl.innerHTML =
+              diagLines.map((l) => `<div class="line">${l}</div>`).join("") +
+              `<div class="line"><span class="label">Erro:</span> <span class="fail">${escapeHtml(err.message)}</span></div>`;
+          }
+        } finally {
+          if (btn) {
+            btn.innerHTML = original;
+            btn.disabled = false;
+          }
+        }
+      }
+
+      function toggleHeaders() {
+        document.getElementById("headersPanel")?.classList.toggle("open");
+      }
+      function toggleDiagnostic() {
+        document.getElementById("diagnosticPanel")?.classList.toggle("open");
+      }
+      function copyResponse() {
+        if (!lastResponse) return;
+        copyToClipboard(JSON.stringify(lastResponse.data, null, 2), "JSON");
+      }
+      function clearResponse() {
+        [
+          "responseBody",
+          "responseStatus",
+          "headersPanel",
+          "diagnosticPanel",
+        ].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.innerHTML = "";
+            el.className = el.className.replace(/open/g, "").trim();
+          }
+        });
+        lastResponse = null;
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        loadState();
+        [
+          "baseUrl",
+          "userEmail",
+          "userPassword",
+          "accessToken",
+          "refreshToken",
+        ].forEach((id) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          el.addEventListener("input", () => {
+            const map = {
+              baseUrl: LS.baseUrl,
+              userEmail: LS.email,
+              userPassword: LS.password,
+              accessToken: LS.accessToken,
+              refreshToken: LS.refreshToken,
+            };
+            if (map[id]) localStorage.setItem(map[id], el.value);
+            updateBadges();
+          });
+        });
+        buildNavigation();
+        loadEndpoint("public", 0);
+        setTimeout(checkHealth, 500);
+      });
+    </script>
+  </body>
+</html>

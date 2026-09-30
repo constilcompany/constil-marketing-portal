@@ -1,13 +1,13 @@
 // ============================================================
 // USER-API-Proposta: Serviço de Autenticação e Gerenciamento de Usuários
-// User-API-Propolsal: Authentication and User Management Service
+// VERSÃO CORRIGIDA - COMPATÍVEL COM A TABELA credit_packages
 // ============================================================
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 
 // ============================================================
-// CONSTANTES E CONFIGURAÇÕES | CONSTANTS & CONFIGURATIONS
+// CONSTANTES E CONFIGURAÇÕES
 // ============================================================
 
 const corsHeaders = {
@@ -16,7 +16,6 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Headers de segurança | Security headers
 const securityHeaders = {
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
@@ -27,7 +26,6 @@ const securityHeaders = {
   "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
 };
 
-// Rate limits específicos por endpoint | Specific rate limits per endpoint
 const RATE_LIMITS: Record<string, { max: number; window: number }> = {
   login: { max: 10, window: 300 },
   register: { max: 5, window: 300 },
@@ -45,12 +43,9 @@ const RATE_LIMITS: Record<string, { max: number; window: number }> = {
 };
 
 // ============================================================
-// FUNÇÕES AUXILIARES | HELPER FUNCTIONS
+// FUNÇÕES AUXILIARES
 // ============================================================
 
-/**
- * Resposta JSON padronizada | Standardized JSON response
- */
 const json = (data: unknown, status = 200) =>
   new Response(JSON.stringify(data), {
     status,
@@ -61,12 +56,6 @@ const json = (data: unknown, status = 200) =>
     },
   });
 
-/**
- * Sanitiza entrada para prevenir XSS | Sanitizes input to prevent XSS
- * @param input - Dado de entrada | Input data
- * @param maxLength - Tamanho máximo | Maximum length
- * @returns String sanitizada | Sanitized string
- */
 function sanitize(input: unknown, maxLength = 500): string {
   if (!input || typeof input !== "string") return "";
   return input
@@ -76,33 +65,21 @@ function sanitize(input: unknown, maxLength = 500): string {
     .substring(0, maxLength);
 }
 
-/**
- * Valida UUID | Validates UUID
- */
 function isValidUUID(id: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
     id || "",
   );
 }
 
-/**
- * Valida email | Validates email
- */
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email || "") && email.length <= 255;
 }
 
-/**
- * Valida telefone (formato internacional) | Validates phone (international format)
- */
 function isValidPhone(phone: string): boolean {
-  if (!phone) return true; // Opcional | Optional
+  if (!phone) return true;
   return /^\+?[1-9]\d{1,14}$/.test(phone.replace(/\s/g, ""));
 }
 
-/**
- * Resposta segura de erro | Safe error response
- */
 function safeError(message: string, status = 500) {
   const safeMessages: Record<number, string> = {
     400: "Invalid request",
@@ -117,9 +94,6 @@ function safeError(message: string, status = 500) {
   return json({ error: safeMessages[status] || message }, status);
 }
 
-/**
- * Verifica limite de taxa | Checks rate limit
- */
 async function checkRateLimit(
   serviceClient: any,
   identifier: string,
@@ -160,26 +134,17 @@ async function checkRateLimit(
   return true;
 }
 
-/**
- * Limpa registros antigos de rate limit | Cleans old rate limit records
- */
 async function cleanupRateLimits(serviceClient: any) {
   const cutoff = new Date(Date.now() - 300_000).toISOString();
   await serviceClient.from("rate_limits").delete().lt("window_start", cutoff);
 }
 
-/**
- * Retorna cliente Stripe | Returns Stripe client
- */
 function getStripe() {
   return new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
     apiVersion: "2024-11-20.acacia",
   });
 }
 
-/**
- * Resolve desconto de cupom | Resolves coupon discount
- */
 async function resolveDiscount(
   serviceClient: any,
   userId: string,
@@ -241,9 +206,6 @@ async function resolveDiscount(
   };
 }
 
-/**
- * Calcula preço com desconto | Calculates price with discount
- */
 function calculatePricing(price: number, discountPercent: number) {
   const originalPrice = Number(price);
   const discountAmount =
@@ -255,9 +217,6 @@ function calculatePricing(price: number, discountPercent: number) {
   return { originalPrice, discountAmount, finalPrice };
 }
 
-/**
- * Processa pagamento bem-sucedido | Processes successful payment
- */
 async function processSuccessfulPayment(serviceClient: any, txn: any) {
   const txnUserId = txn.user_id;
 
@@ -452,55 +411,63 @@ async function processSuccessfulPayment(serviceClient: any, txn: any) {
 // ============================================================
 
 Deno.serve(async (req) => {
-  // Trata requisições OPTIONS | Handle OPTIONS requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   const url = new URL(req.url);
-  const rawPath = url.pathname.replace(/^\/user-api\/?/, "");
+  // 🔧 CORRIGIDO: Aceita /user-api/ e /user-api-test/
+  const rawPath = url.pathname.replace(/^\/user-api(-test)?\/?/, "");
   const path = rawPath.replace(/^auth\//, "");
 
-  // Cliente com permissões administrativas | Admin client
+  console.log("📍 PATH:", path);
+  console.log("📍 METHOD:", req.method);
+
   const serviceClient = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
 
   try {
-    // Limpeza periódica (non-blocking) | Periodic cleanup (non-blocking)
     cleanupRateLimits(serviceClient).catch(() => {});
 
     // ============================================================
-    // ENDPOINTS PÚBLICOS | PUBLIC ENDPOINTS
+    // ENDPOINTS PÚBLICOS
     // ============================================================
 
     // === GET /packages ===
-    // Lista pacotes disponíveis | Lists available packages
     if (req.method === "GET" && path === "packages") {
+      console.log("📦 Buscando pacotes...");
+
+      // ✅ CORRIGIDO: Removidos campos que não existem (description, is_free)
       const { data, error } = await serviceClient
         .from("credit_packages")
         .select(
-          "id, name, description, credit_amount, price, billing_type, billing_interval, template_tier, invoice_credits, estimate_credits, ai_estimate_credits, invoice_unlimited, estimate_unlimited, ai_estimate_unlimited, is_active, is_free, trial_enabled, trial_days, created_at",
+          "id, name, credit_amount, price, billing_type, " +
+            "billing_interval, template_tier, invoice_credits, estimate_credits, " +
+            "ai_estimate_credits, invoice_unlimited, estimate_unlimited, " +
+            "ai_estimate_unlimited, is_active, trial_enabled, trial_days, " +
+            "trial_invoice_credits, trial_estimate_credits, trial_ai_estimate_credits, " +
+            "duration_days, created_at, updated_at",
         )
         .eq("is_active", true)
         .order("price", { ascending: true });
-      if (error) return safeError("Failed to fetch packages", 500);
 
-      // Separar planos | Separate plans
-      const freePlan = data.find((p: any) => p.is_free === true);
-      const paidPlans = data.filter((p: any) => p.is_free !== true);
+      if (error) {
+        console.error("❌ Erro no banco:", error);
+        return safeError("Failed to fetch packages", 500);
+      }
 
+      console.log("✅ Pacotes encontrados:", data?.length || 0);
+
+      // ✅ CORRIGIDO: Remove referências a is_free que não existe
       return json({
-        packages: data,
-        free_plan: freePlan || null,
-        paid_plans: paidPlans,
-        has_free_plan: !!freePlan,
+        packages: data || [],
+        total: data?.length || 0,
       });
     }
 
     // === POST /register ===
-    // Registro de novo usuário | New user registration
     if (req.method === "POST" && path === "register") {
       let body: any;
       try {
@@ -509,7 +476,6 @@ Deno.serve(async (req) => {
         return safeError("Invalid request body", 400);
       }
 
-      // Validação e sanitização | Validation and sanitization
       const email = sanitize(body.email, 255).toLowerCase();
       const password = body.password;
       const full_name = sanitize(body.full_name, 100);
@@ -524,7 +490,6 @@ Deno.serve(async (req) => {
       const state = sanitize(body.state, 100);
       const country = sanitize(body.country, 100);
 
-      // Validação de campos obrigatórios | Required fields validation
       if (!email || !password || !full_name) {
         return json({ error: "Missing required fields" }, 400);
       }
@@ -542,7 +507,6 @@ Deno.serve(async (req) => {
         return json({ error: "Invalid phone number format" }, 400);
       }
 
-      // Verificar se email já existe | Check if email exists
       const { data: existingEmail } = await serviceClient
         .from("profiles")
         .select("id")
@@ -553,7 +517,6 @@ Deno.serve(async (req) => {
         return json({ error: "Email already registered" }, 409);
       }
 
-      // Verificar se telefone já existe (se fornecido) | Check if phone exists
       if (phone) {
         const { data: existingPhone } = await serviceClient
           .from("profiles")
@@ -566,7 +529,6 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Rate limit | Rate limiting
       const clientIP =
         req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
       const allowed = await checkRateLimit(
@@ -578,7 +540,6 @@ Deno.serve(async (req) => {
       );
       if (!allowed) return safeError("Too many requests", 429);
 
-      // Criar usuário | Create user
       const { data: newUser, error: createErr } =
         await serviceClient.auth.admin.createUser({
           email,
@@ -599,7 +560,6 @@ Deno.serve(async (req) => {
 
       const userId = newUser.user.id;
 
-      // Atualizar perfil | Update profile
       const profileUpdate: any = {
         user_id: userId,
         email: email,
@@ -622,7 +582,6 @@ Deno.serve(async (req) => {
         .update(profileUpdate)
         .eq("user_id", userId);
 
-      // Processar cupom | Process coupon
       if (coupon_code) {
         const upperCode = coupon_code.toUpperCase();
         const { data: coupon } = await serviceClient
@@ -652,7 +611,6 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Log de auditoria | Audit log
       await serviceClient.from("audit_logs").insert({
         user_id: userId,
         action: "user_registered",
@@ -669,7 +627,6 @@ Deno.serve(async (req) => {
     }
 
     // === POST /login ===
-    // Login de usuário | User login
     if (req.method === "POST" && path === "login") {
       let body: any;
       try {
@@ -688,7 +645,6 @@ Deno.serve(async (req) => {
         return json({ error: "Invalid email format" }, 400);
       }
 
-      // Rate limit | Rate limiting
       const clientIP =
         req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
       const allowed = await checkRateLimit(
@@ -705,13 +661,11 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Login | Login
       const { data, error } = await serviceClient.auth.signInWithPassword({
         email,
         password,
       });
       if (error) {
-        // Log de tentativa falha | Failed attempt log
         await serviceClient.from("audit_logs").insert({
           action: "login_failed",
           ip_address: clientIP,
@@ -721,14 +675,12 @@ Deno.serve(async (req) => {
         return json({ error: "Invalid credentials" }, 401);
       }
 
-      // Verificar se email/telefone estão verificados | Check if email/phone are verified
       const { data: profile } = await serviceClient
         .from("profiles")
         .select("email_verified, phone_verified")
         .eq("user_id", data.user.id)
         .single();
 
-      // Sessão | Session
       await serviceClient.from("sessions").insert({
         user_id: data.user.id,
         is_active: true,
@@ -736,7 +688,6 @@ Deno.serve(async (req) => {
         user_agent: (req.headers.get("user-agent") || "").substring(0, 255),
       });
 
-      // Log de auditoria | Audit log
       await serviceClient.from("audit_logs").insert({
         user_id: data.user.id,
         action: "user_logged_in",
@@ -757,7 +708,6 @@ Deno.serve(async (req) => {
     }
 
     // === POST /send-signup-otp ===
-    // Envia OTP para verificação de email | Sends OTP for email verification
     if (req.method === "POST" && path === "send-signup-otp") {
       let body: any;
       try {
@@ -771,7 +721,6 @@ Deno.serve(async (req) => {
       if (!isValidEmail(email))
         return json({ error: "Invalid email format" }, 400);
 
-      // Verificar se email já existe | Check if email exists
       const { data: existingProfile } = await serviceClient
         .from("profiles")
         .select("id")
@@ -797,18 +746,15 @@ Deno.serve(async (req) => {
       if (!rateLimited) return safeError("Too many requests", 429);
 
       try {
-        // Gerar OTP de 6 dígitos | Generate 6-digit OTP
         const otp = String(Math.floor(100000 + Math.random() * 900000));
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-        // Invalidar OTPs anteriores | Invalidate previous OTPs
         await serviceClient
           .from("password_reset_otps")
           .update({ used: true })
           .eq("email", email)
           .eq("used", false);
 
-        // Armazenar novo OTP | Store new OTP
         await serviceClient.from("password_reset_otps").insert({
           email,
           otp_code: otp,
@@ -816,7 +762,6 @@ Deno.serve(async (req) => {
           purpose: "signup",
         });
 
-        // Enviar OTP via SendGrid | Send OTP via SendGrid
         const sendgridKey = Deno.env.get("SENDGRID_API_KEY");
         if (sendgridKey) {
           await fetch("https://api.sendgrid.com/v3/mail/send", {
@@ -850,7 +795,7 @@ Deno.serve(async (req) => {
           });
         }
       } catch {
-        // Silencioso | Silent
+        // Silent
       }
 
       return json({
@@ -860,7 +805,6 @@ Deno.serve(async (req) => {
     }
 
     // === POST /forgot-password ===
-    // Recuperação de senha | Password recovery
     if (req.method === "POST" && path === "forgot-password") {
       let body: any;
       try {
@@ -885,7 +829,6 @@ Deno.serve(async (req) => {
       );
       if (!rateLimited) return safeError("Too many requests", 429);
 
-      // Sempre retornar sucesso para prevenir enumeração | Always return success to prevent enumeration
       try {
         const { data: users } = await serviceClient.auth.admin.listUsers();
         const userExists = users?.users?.some(
@@ -893,7 +836,6 @@ Deno.serve(async (req) => {
         );
 
         if (userExists) {
-          // Gerar OTP | Generate OTP
           const otp = String(Math.floor(100000 + Math.random() * 900000));
           const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
@@ -944,7 +886,7 @@ Deno.serve(async (req) => {
           }
         }
       } catch {
-        // Silencioso | Silent
+        // Silent
       }
 
       return json({
@@ -955,7 +897,6 @@ Deno.serve(async (req) => {
     }
 
     // === POST /verify-otp ===
-    // Verifica OTP | Verifies OTP
     if (req.method === "POST" && path === "verify-otp") {
       let body: any;
       try {
@@ -989,13 +930,11 @@ Deno.serve(async (req) => {
         return json({ error: "Invalid or expired code" }, 400);
       }
 
-      // Marcar OTP como usado | Mark OTP as used
       await serviceClient
         .from("password_reset_otps")
         .update({ used: true })
         .eq("id", otpRecord.id);
 
-      // Se for verificação de signup, marcar email como verificado | If signup verification, mark email as verified
       if (otpRecord.purpose === "signup") {
         await serviceClient
           .from("profiles")
@@ -1011,7 +950,6 @@ Deno.serve(async (req) => {
     }
 
     // === POST /reset-password ===
-    // Reset de senha | Password reset
     if (req.method === "POST" && path === "reset-password") {
       let body: any;
       try {
@@ -1038,7 +976,6 @@ Deno.serve(async (req) => {
         return json({ error: "Password must be 8-128 characters" }, 400);
       }
 
-      // Verificar OTP | Verify OTP
       const { data: otpRecord } = await serviceClient
         .from("password_reset_otps")
         .select("*")
@@ -1055,13 +992,11 @@ Deno.serve(async (req) => {
         return json({ error: "Invalid or expired code" }, 400);
       }
 
-      // Marcar OTP como usado | Mark OTP as used
       await serviceClient
         .from("password_reset_otps")
         .update({ used: true })
         .eq("id", otpRecord.id);
 
-      // Encontrar usuário e atualizar senha | Find user and update password
       const { data: users } = await serviceClient.auth.admin.listUsers();
       const targetUser = users?.users?.find(
         (u: any) => u.email?.toLowerCase() === email,
@@ -1078,7 +1013,6 @@ Deno.serve(async (req) => {
         return json({ error: "Failed to update password" }, 400);
       }
 
-      // Log de auditoria | Audit log
       await serviceClient.from("audit_logs").insert({
         user_id: targetUser.id,
         action: "password_reset",
@@ -1091,7 +1025,6 @@ Deno.serve(async (req) => {
     }
 
     // === POST /google ===
-    // Autenticação com Google | Google authentication
     if (
       req.method === "POST" &&
       (path === "google" || path === "auth/google")
@@ -1135,7 +1068,6 @@ Deno.serve(async (req) => {
       const userId = data.user.id;
       const isNewUser = data.user.created_at === data.user.updated_at;
 
-      // Se for novo usuário, criar perfil | If new user, create profile
       if (isNewUser) {
         const phone = sanitize(body.phone, 20);
         const address = sanitize(body.address, 500);
@@ -1150,7 +1082,7 @@ Deno.serve(async (req) => {
           phone: phone || null,
           address: address || null,
           zip_code: zip_code || null,
-          email_verified: true, // Google já verifica
+          email_verified: true,
           phone_verified: !!phone && isValidPhone(phone),
         };
 
@@ -1158,7 +1090,6 @@ Deno.serve(async (req) => {
           .from("profiles")
           .upsert(profileUpdate, { onConflict: "user_id" });
 
-        // Processar cupom | Process coupon
         if (coupon_code) {
           const upperCode = coupon_code.toUpperCase();
           const { data: coupon } = await serviceClient
@@ -1189,7 +1120,6 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Sessão | Session
       await serviceClient.from("sessions").insert({
         user_id: userId,
         is_active: true,
@@ -1197,7 +1127,6 @@ Deno.serve(async (req) => {
         user_agent: (req.headers.get("user-agent") || "").substring(0, 255),
       });
 
-      // Log de auditoria | Audit log
       await serviceClient.from("audit_logs").insert({
         user_id: userId,
         action: "google_login",
@@ -1214,56 +1143,71 @@ Deno.serve(async (req) => {
     }
 
     // ============================================================
-    // ENDPOINTS AUTENTICADOS | AUTHENTICATED ENDPOINTS
+    // ENDPOINTS AUTENTICADOS
     // ============================================================
 
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return safeError("Unauthorized", 401);
+    // 🔧 CORREÇÃO: Lista de endpoints públicos
+    const PUBLIC_ENDPOINTS = [
+      "packages",
+      "register",
+      "login",
+      "send-signup-otp",
+      "forgot-password",
+      "verify-otp",
+      "reset-password",
+      "google",
+      "auth/google",
+    ];
+
+    // Variáveis para endpoints autenticados
+    let userId: string | null = null;
+    let userEmail: string | null = null;
+
+    // Se NÃO for endpoint público, verifica autenticação
+    if (!PUBLIC_ENDPOINTS.includes(path)) {
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader?.startsWith("Bearer ")) {
+        return safeError("Unauthorized", 401);
+      }
+
+      const anonClient = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeader } } },
+      );
+
+      const token = authHeader.replace("Bearer ", "");
+      const { data: claimsData, error: claimsErr } =
+        await anonClient.auth.getClaims(token);
+      if (claimsErr || !claimsData?.claims) {
+        return safeError("Unauthorized", 401);
+      }
+
+      userId = claimsData.claims.sub as string;
+
+      const rateLimitConfig = RATE_LIMITS[path] || { max: 120, window: 60 };
+      const allowed = await checkRateLimit(
+        serviceClient,
+        userId,
+        path,
+        rateLimitConfig.max,
+        rateLimitConfig.window,
+      );
+      if (!allowed) {
+        return safeError("Too many requests", 429);
+      }
+
+      const { data: userProfile } = await serviceClient
+        .from("profiles")
+        .select("email, phone, email_verified, phone_verified")
+        .eq("user_id", userId)
+        .single();
+      userEmail = userProfile?.email;
     }
-
-    const anonClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } },
-    );
-
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsErr } =
-      await anonClient.auth.getClaims(token);
-    if (claimsErr || !claimsData?.claims) {
-      return safeError("Unauthorized", 401);
-    }
-
-    const userId = claimsData.claims.sub as string;
-
-    // Rate limit para endpoints autenticados | Rate limit for authenticated endpoints
-    const rateLimitConfig = RATE_LIMITS[path] || { max: 120, window: 60 };
-    const allowed = await checkRateLimit(
-      serviceClient,
-      userId,
-      path,
-      rateLimitConfig.max,
-      rateLimitConfig.window,
-    );
-    if (!allowed) {
-      return safeError("Too many requests", 429);
-    }
-
-    // Obter perfil do usuário | Get user profile
-    const { data: userProfile } = await serviceClient
-      .from("profiles")
-      .select("email, phone, email_verified, phone_verified")
-      .eq("user_id", userId)
-      .single();
-    const userEmail = userProfile?.email;
-    const userPhone = userProfile?.phone;
-    const isEmailVerified = userProfile?.email_verified || false;
-    const isPhoneVerified = userProfile?.phone_verified || false;
 
     // === GET /credits ===
-    // Obtém créditos do usuário | Gets user credits
     if (req.method === "GET" && path === "credits") {
+      if (!userId) return safeError("Unauthorized", 401);
       const { data, error } = await serviceClient
         .from("user_credits")
         .select("balance")
@@ -1274,8 +1218,8 @@ Deno.serve(async (req) => {
     }
 
     // === GET /get_profile ===
-    // Obtém perfil do usuário | Gets user profile
     if (req.method === "GET" && path === "get_profile") {
+      if (!userId) return safeError("Unauthorized", 401);
       const { data, error } = await serviceClient
         .from("profiles")
         .select("*")
@@ -1305,8 +1249,8 @@ Deno.serve(async (req) => {
     }
 
     // === GET /list_invoices ===
-    // Lista faturas do usuário | Lists user invoices
     if (req.method === "GET" && path === "list_invoices") {
+      if (!userId) return safeError("Unauthorized", 401);
       const { data, error } = await serviceClient
         .from("invoices")
         .select("*")
@@ -1322,8 +1266,8 @@ Deno.serve(async (req) => {
     }
 
     // === POST /create-checkout ===
-    // Cria checkout Stripe | Creates Stripe checkout
     if (req.method === "POST" && path === "create-checkout") {
+      if (!userId) return safeError("Unauthorized", 401);
       let body: any;
       try {
         body = await req.json();
@@ -1376,9 +1320,7 @@ Deno.serve(async (req) => {
           email: userEmail,
           limit: 1,
         });
-        if (customers.data.length > 0) {
-          customerId = customers.data[0].id;
-        }
+        if (customers.data.length > 0) customerId = customers.data[0].id;
       }
 
       const metadata = {
@@ -1454,8 +1396,8 @@ Deno.serve(async (req) => {
     }
 
     // === POST /verify-payment ===
-    // Verifica pagamento Stripe | Verifies Stripe payment
     if (req.method === "POST" && path === "verify-payment") {
+      if (!userId) return safeError("Unauthorized", 401);
       let body: any;
       try {
         body = await req.json();
@@ -1514,8 +1456,8 @@ Deno.serve(async (req) => {
     }
 
     // === POST /validate-coupon ===
-    // Valida cupom de desconto | Validates discount coupon
     if (req.method === "POST" && path === "validate-coupon") {
+      if (!userId) return safeError("Unauthorized", 401);
       let body: any;
       try {
         body = await req.json();
@@ -1577,8 +1519,8 @@ Deno.serve(async (req) => {
     }
 
     // === GET /wallet ===
-    // Obtém carteira de créditos | Gets credit wallet
     if (req.method === "GET" && path === "wallet") {
+      if (!userId) return safeError("Unauthorized", 401);
       const { data, error } = await serviceClient
         .from("user_credit_wallets")
         .select("*")
@@ -1604,8 +1546,8 @@ Deno.serve(async (req) => {
     }
 
     // === GET /subscription ===
-    // Obtém assinatura do usuário | Gets user subscription
     if (req.method === "GET" && path === "subscription") {
+      if (!userId) return safeError("Unauthorized", 401);
       const { data, error } = await serviceClient
         .from("subscriptions")
         .select("*, credit_packages(*)")
@@ -1617,39 +1559,23 @@ Deno.serve(async (req) => {
         return safeError("Failed to fetch subscription", 500);
       }
 
-      if (data) {
-        if (data.is_trial && data.trial_end_at) {
-          const now = new Date();
-          const end = new Date(data.trial_end_at);
-          const daysLeft = Math.max(
-            0,
-            Math.ceil((end.getTime() - now.getTime()) / 86400000),
-          );
-          (data as any).trial_days_remaining = daysLeft;
-        }
-
-        if (data.is_free) {
-          (data as any).plan_type = "free";
-          (data as any).expiry_in_days = Math.max(
-            0,
-            Math.ceil(
-              (new Date(data.expiry_date).getTime() - new Date().getTime()) /
-                86400000,
-            ),
-          );
-        } else {
-          (data as any).plan_type = "paid";
-        }
+      if (data && data.is_trial && data.trial_end_at) {
+        const now = new Date();
+        const end = new Date(data.trial_end_at);
+        const daysLeft = Math.max(
+          0,
+          Math.ceil((end.getTime() - now.getTime()) / 86400000),
+        );
+        (data as any).trial_days_remaining = daysLeft;
       }
 
       return json({ subscription: data || null });
     }
 
     // === POST /start-free ===
-    // Ativa plano free | Activates free plan
     if (req.method === "POST" && path === "start-free") {
+      if (!userId) return safeError("Unauthorized", 401);
       try {
-        // Rate limit específico para free plan | Specific rate limit for free plan
         const clientIP =
           req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
           "unknown";
@@ -1664,7 +1590,7 @@ Deno.serve(async (req) => {
           return safeError("Too many attempts. Please try again later.", 429);
         }
 
-        // Buscar pacote free | Fetch free package
+        // ✅ CORRIGIDO: Busca pacote free
         const { data: freePackage, error: pkgError } = await serviceClient
           .from("credit_packages")
           .select("*")
@@ -1679,7 +1605,6 @@ Deno.serve(async (req) => {
           );
         }
 
-        // Verificar histórico de free plan (mesmo inativo) | Check free plan history (even inactive)
         const { data: freeHistory, error: historyError } = await serviceClient
           .from("subscriptions")
           .select("id, status, created_at, expiry_date")
@@ -1692,7 +1617,6 @@ Deno.serve(async (req) => {
           return safeError("Failed to check eligibility", 500);
         }
 
-        // Verificar se já usou free antes (qualquer status) | Check if used free before (any status)
         if (freeHistory && freeHistory.length > 0) {
           const hasActiveFree = freeHistory.some(
             (s: any) => s.status === "active",
@@ -1707,7 +1631,6 @@ Deno.serve(async (req) => {
             );
           }
 
-          // Se já usou free antes (mesmo inativo) | If used free before (even inactive)
           return json(
             {
               error: "Free plan already used. This is a one-time offer.",
@@ -1718,7 +1641,6 @@ Deno.serve(async (req) => {
           );
         }
 
-        // Verificar se tem plano pago ativo | Check if has active paid plan
         const { data: existingPaid } = await serviceClient
           .from("subscriptions")
           .select("id, package_id, credit_packages!inner(name)")
@@ -1739,19 +1661,16 @@ Deno.serve(async (req) => {
           );
         }
 
-        // Ativar plano free | Activate free plan
         const now = new Date();
         const expiryDate = new Date();
         expiryDate.setFullYear(expiryDate.getFullYear() + 1);
 
-        // Desativar outras assinaturas | Deactivate other subscriptions
         await serviceClient
           .from("subscriptions")
           .update({ is_active: false, status: "replaced" })
           .eq("user_id", userId)
           .eq("is_active", true);
 
-        // Criar assinatura free | Create free subscription
         const { data: subscription, error: subError } = await serviceClient
           .from("subscriptions")
           .insert({
@@ -1774,7 +1693,6 @@ Deno.serve(async (req) => {
           return safeError("Failed to activate free plan", 500);
         }
 
-        // Atualizar wallet | Update wallet
         const { data: existingWallet } = await serviceClient
           .from("user_credit_wallets")
           .select("*")
@@ -1808,7 +1726,6 @@ Deno.serve(async (req) => {
           });
         }
 
-        // Atualizar créditos gerais | Update general credits
         const totalCredits =
           (freePackage.invoice_credits || 0) +
           (freePackage.estimate_credits || 0) +
@@ -1831,7 +1748,6 @@ Deno.serve(async (req) => {
           );
         }
 
-        // Registrar transação | Record transaction
         await serviceClient.from("credit_transactions").insert({
           user_id: userId,
           package_id: freePackage.id,
@@ -1841,7 +1757,6 @@ Deno.serve(async (req) => {
           discount_applied: 0,
         });
 
-        // Log de auditoria | Audit log
         await serviceClient.from("audit_logs").insert({
           user_id: userId,
           action: "free_plan_activated",
@@ -1877,10 +1792,9 @@ Deno.serve(async (req) => {
     }
 
     // === GET /check-free-eligibility ===
-    // Verifica elegibilidade para plano free | Checks free plan eligibility
     if (req.method === "GET" && path === "check-free-eligibility") {
+      if (!userId) return safeError("Unauthorized", 401);
       try {
-        // Verificar histórico de free plan | Check free plan history
         const { data: freeHistory } = await serviceClient
           .from("subscriptions")
           .select("id, status, created_at, expiry_date")
@@ -1892,7 +1806,6 @@ Deno.serve(async (req) => {
           freeHistory?.some((s: any) => s.status === "active") || false;
         const hasUsedFreeBefore = freeHistory && freeHistory.length > 0;
 
-        // Verificar plano pago ativo | Check active paid plan
         const { data: existingPaid } = await serviceClient
           .from("subscriptions")
           .select("id, package_id, credit_packages!inner(name)")
@@ -1943,8 +1856,8 @@ Deno.serve(async (req) => {
     }
 
     // === POST /start-trial ===
-    // Inicia trial gratuito | Starts free trial
     if (req.method === "POST" && path === "start-trial") {
+      if (!userId) return safeError("Unauthorized", 401);
       let body: any;
       try {
         body = await req.json();
@@ -2044,8 +1957,8 @@ Deno.serve(async (req) => {
     }
 
     // === POST /verify-trial ===
-    // Verifica ativação do trial | Verifies trial activation
     if (req.method === "POST" && path === "verify-trial") {
+      if (!userId) return safeError("Unauthorized", 401);
       let body: any;
       try {
         body = await req.json();
@@ -2170,8 +2083,8 @@ Deno.serve(async (req) => {
     }
 
     // === GET /template-access ===
-    // Obtém níveis de acesso a templates | Gets template access levels
     if (req.method === "GET" && path === "template-access") {
+      if (!userId) return safeError("Unauthorized", 401);
       const { data: sub } = await serviceClient
         .from("subscriptions")
         .select("template_tier")
@@ -2189,8 +2102,8 @@ Deno.serve(async (req) => {
     }
 
     // === GET /credit-config ===
-    // Obtém configurações de créditos | Gets credit configurations
     if (req.method === "GET" && path === "credit-config") {
+      if (!userId) return safeError("Unauthorized", 401);
       const { data, error } = await serviceClient
         .from("credit_action_config")
         .select("action_type, credit_cost, is_active")
@@ -2200,8 +2113,8 @@ Deno.serve(async (req) => {
     }
 
     // === POST /consume-credit ===
-    // Consome créditos do usuário | Consumes user credits
     if (req.method === "POST" && path === "consume-credit") {
+      if (!userId) return safeError("Unauthorized", 401);
       let body: any;
       try {
         body = await req.json();
@@ -2237,7 +2150,6 @@ Deno.serve(async (req) => {
 
       const cost = actionConfig.credit_cost;
 
-      // Usar transação para evitar race conditions | Use transaction to avoid race conditions
       const { data: wallet } = await serviceClient
         .from("user_credit_wallets")
         .select("*")
@@ -2289,20 +2201,16 @@ Deno.serve(async (req) => {
         }
 
         if (remaining >= cost) {
-          // Usar update com verificação para evitar race condition
           const { data: updated, error: updateError } = await serviceClient
             .from("user_credit_wallets")
             .update({ [bucket.remaining]: remaining - cost })
             .eq("user_id", userId)
-            .eq(bucket.remaining, remaining) // Condição de otimismo
+            .eq(bucket.remaining, remaining)
             .select();
 
           if (updateError || !updated || updated.length === 0) {
-            // Race condition detectada - tentar novamente | Race condition detected - retry
             return json(
-              {
-                error: "Concurrent operation detected. Please try again.",
-              },
+              { error: "Concurrent operation detected. Please try again." },
               409,
             );
           }
@@ -2324,7 +2232,6 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Fallback: legacy pool
       const { data: credits } = await serviceClient
         .from("user_credits")
         .select("balance")
@@ -2343,19 +2250,16 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Usar update com condição otimista | Use optimistic condition update
       const { data: updated, error: updateError } = await serviceClient
         .from("user_credits")
         .update({ balance: credits.balance - cost })
         .eq("user_id", userId)
-        .eq("balance", credits.balance) // Condição de otimismo
+        .eq("balance", credits.balance)
         .select();
 
       if (updateError || !updated || updated.length === 0) {
         return json(
-          {
-            error: "Concurrent operation detected. Please try again.",
-          },
+          { error: "Concurrent operation detected. Please try again." },
           409,
         );
       }
@@ -2377,8 +2281,8 @@ Deno.serve(async (req) => {
     }
 
     // === POST /invoice-generated (legacy) ===
-    // Endpoint legado para geração de faturas | Legacy endpoint for invoice generation
     if (req.method === "POST" && path === "invoice-generated") {
+      if (!userId) return safeError("Unauthorized", 401);
       const { data: actionConfig } = await serviceClient
         .from("credit_action_config")
         .select("credit_cost")
@@ -2422,8 +2326,8 @@ Deno.serve(async (req) => {
     }
 
     // === POST /template/send-invoice ===
-    // Envia fatura por email | Sends invoice by email
     if (req.method === "POST" && path === "template/send-invoice") {
+      if (!userId) return safeError("Unauthorized", 401);
       let body: any;
       try {
         body = await req.json();
@@ -2535,8 +2439,8 @@ Deno.serve(async (req) => {
     }
 
     // === POST /template/send-estimate ===
-    // Envia orçamento por email | Sends estimate by email
     if (req.method === "POST" && path === "template/send-estimate") {
+      if (!userId) return safeError("Unauthorized", 401);
       let body: any;
       try {
         body = await req.json();
@@ -2647,7 +2551,6 @@ Deno.serve(async (req) => {
       return json({ success: true, message: "Email sent successfully" });
     }
 
-    // Endpoint não encontrado | Endpoint not found
     return safeError("Not found", 404);
   } catch (err) {
     console.error("[USER-API] Error:", (err as Error).message);

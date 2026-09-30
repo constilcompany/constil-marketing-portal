@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User-API Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: #0b0e14;
+            color: #e4e6eb;
+            padding: 24px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: #151b24;
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            border: 1px solid #2a3440;
+        }
+        h1 {
+            font-size: 26px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        h1 small {
+            font-size: 14px;
+            font-weight: 400;
+            color: #8896a6;
+        }
+        .badge {
+            background: #1f8b4c;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            color: #fff;
+        }
+        .layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 24px;
+            margin-top: 20px;
+        }
+        .sidebar {
+            background: #11181f;
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid #26303c;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+        .sidebar h3 {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #8896a6;
+            margin-bottom: 12px;
+        }
+        .endpoint-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: transparent;
+            border: none;
+            color: #c8d0d8;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+            border-left: 3px solid transparent;
+        }
+        .endpoint-btn:hover {
+            background: #1f2a36;
+            color: #fff;
+        }
+        .endpoint-btn.active {
+            background: #1f2a36;
+            border-left-color: #448AFF;
+            color: #fff;
+        }
+        .endpoint-btn .method {
+            display: inline-block;
+            font-weight: 700;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-right: 8px;
+            background: #1f8b4c;
+            color: #fff;
+        }
+        .endpoint-btn .method.post {
+            background: #1a6fb0;
+        }
+        .endpoint-btn .method.get {
+            background: #1f8b4c;
+        }
+        .endpoint-btn .method.delete {
+            background: #b33a3a;
+        }
+        .main {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .panel {
+            background: #11181f;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #26303c;
+        }
+        .panel h2 {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .panel .path {
+            color: #8896a6;
+            font-size: 13px;
+            font-family: monospace;
+            margin-bottom: 16px;
+        }
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: #a0adb8;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background: #0b0e14;
+            border: 1px solid #26303c;
+            border-radius: 8px;
+            color: #e4e6eb;
+            font-size: 14px;
+            transition: 0.2s;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #448AFF;
+            box-shadow: 0 0 0 3px rgba(68, 138, 255, 0.15);
+        }
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-primary {
+            background: #448AFF;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #5a9bff;
+            transform: translateY(-1px);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-secondary {
+            background: #26303c;
+            color: #c8d0d8;
+        }
+        .btn-secondary:hover {
+            background: #32404e;
+        }
+        .btn-danger {
+            background: #b33a3a;
+            color: #fff;
+        }
+        .btn-danger:hover {
+            background: #cc4444;
+        }
+        .response-area {
+            background: #0b0e14;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 12px;
+            border: 1px solid #1f2a36;
+            min-height: 120px;
+            max-height: 400px;
+            overflow: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: #c8d0d8;
+        }
+        .response-area .status {
+            color: #448AFF;
+            font-weight: 600;
+        }
+        .response-area .status.success {
+            color: #4caf50;
+        }
+        .response-area .status.error {
+            color: #ef5350;
+        }
+        .response-area .status.pending {
+            color: #ffb74d;
+        }
+        .token-display {
+            background: #0b0e14;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #8896a6;
+            border: 1px solid #1f2a36;
+            margin-top: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .token-display span {
+            color: #4caf50;
+        }
+        .flex {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .mt-12 {
+            margin-top: 12px;
+        }
+        .mt-16 {
+            margin-top: 16px;
+        }
+        .mb-8 {
+            margin-bottom: 8px;
+        }
+        .text-muted {
+            color: #8896a6;
+            font-size: 13px;
+        }
+        .text-green {
+            color: #4caf50;
+        }
+        .text-red {
+            color: #ef5350;
+        }
+        .text-blue {
+            color: #448AFF;
+        }
+        .pill {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #1f2a36;
+            color: #a0adb8;
+        }
+        .pill.active {
+            background: #1f8b4c;
+            color: #fff;
+        }
+        .logs {
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            background: #0b0e14;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #1f2a36;
+        }
+        .logs .log-entry {
+            padding: 4px 0;
+            border-bottom: 1px solid #11181f;
+            color: #8896a6;
+        }
+        .logs .log-entry .time {
+            color: #5a6a7a;
+        }
+        .logs .log-entry .method {
+            font-weight: 600;
+        }
+        .logs .log-entry .method.GET {
+            color: #4caf50;
+        }
+        .logs .log-entry .method.POST {
+            color: #448AFF;
+        }
+        .logs .log-entry .status-code {
+            font-weight: 600;
+        }
+        .logs .log-entry .status-code.success {
+            color: #4caf50;
+        }
+        .logs .log-entry .status-code.error {
+            color: #ef5350;
+        }
+        @media (max-width: 768px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                position: static;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #26303c;
+            border-top-color: #448AFF;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- HEADER -->
+        <div class="flex-between">
+            <div>
+                <h1>
+                    🧪 User-API Simulator
+                    <small>v2.0 - Proposta</small>
+                </h1>
+                <div class="flex" style="margin-top:4px;">
+                    <span class="badge">⚡ Simulação Local</span>
+                    <span class="badge" style="background:#1a6fb0;">🔒 Sem Backend</span>
+                    <span class="badge" style="background:#6a4c9c;">📦 Free Plan</span>
+                </div>
+            </div>
+            <div style="text-align:right;">
+                <button class="btn btn-secondary" onclick="clearLogs()" style="font-size:12px;">🗑️ Limpar Logs</button>
+                <button class="btn btn-secondary" onclick="resetState()" style="font-size:12px;margin-left:6px;">🔄 Reset</button>
+            </div>
+        </div>
+
+        <!-- TOKEN / STATUS -->
+        <div class="flex-between mt-12" style="background:#11181f;padding:10px 16px;border-radius:8px;border:1px solid #26303c;">
+            <div>
+                <span class="text-muted">🔑 Token:</span>
+                <span id="tokenDisplay" style="font-family:monospace;font-size:12px;color:#8896a6;">Nenhum</span>
+            </div>
+            <div>
+                <span class="text-muted">👤 Usuário:</span>
+                <span id="userDisplay" style="font-family:monospace;font-size:12px;color:#8896a6;">Não autenticado</span>
+            </div>
+            <div>
+                <span class="text-muted">📦 Pacotes:</span>
+                <span id="packageCount" style="font-family:monospace;font-size:12px;color:#8896a6;">0</span>
+            </div>
+        </div>
+
+        <!-- LAYOUT -->
+        <div class="layout">
+            <!-- SIDEBAR -->
+            <div class="sidebar">
+                <h3>📌 Endpoints</h3>
+                <div style="display:flex;flex-direction:column;gap:2px;">
+                    <!-- Públicos -->
+                    <button class="endpoint-btn active" data-endpoint="packages" onclick="selectEndpoint('packages')">
+                        <span class="method get">GET</span> /packages
+                    </button>
+                    <button class="endpoint-btn" data-endpoint="register" onclick="selectEndpoint('register')">
+                        <span class="method post">POST</span> /register
+                    </button>
+                    <button class="endpoint-btn" data-endpoint="login" onclick="selectEndpoint('login')">
+                        <span class="method post">POST</span> /login
+                    </button>
+                    <button class="endpoint-btn" data-endpoint="send-signup-otp" onclick="selectEndpoint('send-signup-otp')">
+                        <span class="method post">POST</span> /send-signup-otp
+                    </button>
+                    <button class="endpoint-btn" data-endpoint="verify-otp" onclick="selectEndpoint('verify-otp')">
+                        <span class="method post">POST</span> /verify-otp
+                    </button>
+                    <button class="endpoint-btn" data-endpoint="forgot-password" onclick="selectEndpoint('forgot-password')">
+                        <span class="method post">POST</span> /forgot-password
+                    </button>
+                    <button class="endpoint-btn" data-endpoint="reset-password" onclick="selectEndpoint('reset-password')">
+                        <span class="method post">POST</span> /reset-password
+                    </button>
+                    <button class="endpoint-btn" data-endpoint="google" onclick="selectEndpoint('google')">
+                        <span class="method post">POST</span> /google
+                    </button>
+
+                    <div style="height:1px;background:#26303c;margin:8px 0;"></div>
+
+                    <!-- Autenticados -->
+                    <button class="endpoint-btn" data-endpoint="credits" onclick="selectEndpoint('credits')">
+                        <span class="method get">GET</span> /credits
+                    </button>
+                    <button class="endpoint-btn" data-endpoint="get_profile" onclick="selectEndpoint('get_profile')">
+                        <span class="method get">GET</span> /get_profile
+                    </button>
+                    <button class="endpoint-btn" data-endpoint="wallet" onclick="selectEndpoint('wallet')">
+                        <span class="method get">GET</span> /wallet
+                    </button>
+                    <button class="endpoint-btn" data-endpoint="subscription" onclick="selectEndpoint('subscription')">
+                        <span class="method get">GET</span> /subscription
+                    </button>
+                    <button class="endpoint-btn" data-endpoint="start-free" onclick="selectEndpoint('start-free')">
+                        <span class="method post">POST</span> /start-free 🆓
+                    </button>
+                    <button class="endpoint-btn" data-endpoint="check-free-eligibility" onclick="selectEndpoint('check-free-eligibility')">
+                        <span class="method get">GET</span> /check-free-eligibility
+                    </button>
+                    <button class="endpoint-btn" data-endpoint="create-checkout" onclick="selectEndpoint('create-checkout')">
+                        <span class="method post">POST</span> /create-checkout
+                    </button>
+                    <button class="endpoint-btn" data-endpoint="validate-coupon" onclick="selectEndpoint('validate-coupon')">
+                        <span class="method post">POST</span> /validate-coupon
+                    </button>
+                    <button class="endpoint-btn" data-endpoint="consume-credit" onclick="selectEndpoint('consume-credit')">
+                        <span class="method post">POST</span> /consume-credit
+                    </button>
+                    <button class="endpoint-btn" data-endpoint="template-access" onclick="selectEndpoint('template-access')">
+                        <span class="method get">GET</span> /template-access
+                    </button>
+                    <button class="endpoint-btn" data-endpoint="credit-config" onclick="selectEndpoint('credit-config')">
+                        <span class="method get">GET</span> /credit-config
+                    </button>
+                </div>
+            </div>
+
+            <!-- MAIN -->
+            <div class="main">
+                <!-- Request Panel -->
+                <div class="panel">
+                    <div class="flex-between">
+                        <div>
+                            <h2 id="endpointTitle">/packages</h2>
+                            <div class="path" id="endpointPath">GET /user-api/packages</div>
+                        </div>
+                        <div>
+                            <span class="pill" id="authBadge">🔓 Público</span>
+                        </div>
+                    </div>
+
+                    <!-- Body / Params -->
+                    <div id="requestBodyContainer">
+                        <!-- Dynamic content -->
+                    </div>
+
+                    <div class="flex mt-16">
+                        <button class="btn btn-primary" id="sendBtn" onclick="sendRequest()">
+                            🚀 Enviar Requisição
+                        </button>
+                        <button class="btn btn-secondary" onclick="loadExample()" style="margin-left:10px;">
+                            📋 Exemplo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Response Panel -->
+                <div class="panel">
+                    <div class="flex-between">
+                        <h2 style="font-size:16px;">📤 Resposta</h2>
+                        <span id="responseTime" class="text-muted" style="font-size:12px;"></span>
+                    </div>
+                    <div class="response-area" id="responseArea">
+                        <span class="text-muted">Aguardando requisição...</span>
+                    </div>
+                </div>
+
+                <!-- Logs -->
+                <div class="panel">
+                    <div class="flex-between">
+                        <h2 style="font-size:16px;">📋 Logs de Requisição</h2>
+                        <span class="text-muted" style="font-size:12px;" id="logCount">0 entradas</span>
+                    </div>
+                    <div class="logs" id="logsContainer">
+                        <div class="log-entry text-muted">Nenhum log ainda.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // SIMULADOR COMPLETO
+        // ============================================================
+
+        // --- ESTADO GLOBAL ---
+        const state = {
+            token: null,
+            userId: null,
+            userEmail: null,
+            isAuthenticated: false,
+            logs: [],
+            packages: [
+                { id: 'pkg_free', name: 'Free Plan', price: 0, is_free: true, template_tier: 'basic',
+                invoice_credits: 5, estimate_credits: 3, ai_estimate_credits: 2, is_active: true },
+                { id: 'pkg_basic', name: 'Basic', price: 29.90, is_free: false, template_tier: 'basic',
+                    invoice_credits: 20, estimate_credits: 10, ai_estimate_credits: 5, is_active: true },
+                { id: 'pkg_pro', name: 'Professional', price: 79.90, is_free: false, template_tier: 'professional',
+                    invoice_credits: 100, estimate_credits: 50, ai_estimate_credits: 20, is_active: true },
+                { id: 'pkg_enterprise', name: 'Enterprise', price: 199.90, is_free: false, template_tier: 'enterprise',
+                    invoice_credits: 500, estimate_credits: 200, ai_estimate_credits: 100, invoice_unlimited: true,
+                    is_active: true },
+            ],
+            users: [
+                { id: 'user_test', email: 'teste@constil.com', password: 'password123', full_name: 'Teste User',
+                    email_verified: true, phone_verified: false, credits: 50 }
+            ],
+            subscriptions: [],
+            wallets: [],
+            otps: [],
+            transactions: [],
+            coupons: [
+                { id: 'cupom_10', code: 'DESCONTO10', discount_percent: 10, is_active: true, usage_limit: 100,
+                    usage_count: 5 },
+                { id: 'cupom_20', code: 'VIP20', discount_percent: 20, is_active: true, usage_limit: 50, usage_count: 12 },
+            ],
+            currentEndpoint: 'packages',
+        };
+
+        // --- CONFIGURAÇÃO DOS ENDPOINTS ---
+        const endpoints = {
+            'packages': {
+                method: 'GET',
+                path: '/packages',
+                auth: false,
+                title: '/packages',
+                description: 'Lista todos os pacotes disponíveis',
+                body: null,
+                example: null,
+            },
+            'register': {
+                method: 'POST',
+                path: '/register',
+                auth: false,
+                title: '/register',
+                description: 'Registra um novo usuário',
+                body: { email: 'novo@constil.com', password: 'senha123', full_name: 'Novo Usuário', phone: '+5511999999999',
+                    company_name: 'Constil' },
+                example: { email: 'novo@constil.com', password: 'senha123', full_name: 'Novo Usuário' },
+            },
+            'login': {
+                method: 'POST',
+                path: '/login',
+                auth: false,
+                title: '/login',
+                description: 'Login de usuário',
+                body: { email: 'teste@constil.com', password: 'password123' },
+                example: { email: 'teste@constil.com', password: 'password123' },
+            },
+            'send-signup-otp': {
+                method: 'POST',
+                path: '/send-signup-otp',
+                auth: false,
+                title: '/send-signup-otp',
+                description: 'Envia OTP para verificação de email',
+                body: { email: 'novo@constil.com' },
+                example: { email: 'novo@constil.com' },
+            },
+            'verify-otp': {
+                method: 'POST',
+                path: '/verify-otp',
+                auth: false,
+                title: '/verify-otp',
+                description: 'Verifica código OTP',
+                body: { email: 'novo@constil.com', otp: '123456' },
+                example: { email: 'novo@constil.com', otp: '123456' },
+            },
+            'forgot-password': {
+                method: 'POST',
+                path: '/forgot-password',
+                auth: false,
+                title: '/forgot-password',
+                description: 'Solicita recuperação de senha',
+                body: { email: 'teste@constil.com' },
+                example: { email: 'teste@constil.com' },
+            },
+            'reset-password': {
+                method: 'POST',
+                path: '/reset-password',
+                auth: false,
+                title: '/reset-password',
+                description: 'Reseta a senha com OTP',
+                body: { email: 'teste@constil.com', otp: '123456', password: 'novaSenha123' },
+                example: { email: 'teste@constil.com', otp: '123456', password: 'novaSenha123' },
+            },
+            'google': {
+                method: 'POST',
+                path: '/google',
+                auth: false,
+                title: '/google',
+                description: 'Autenticação com Google (simulada)',
+                body: { id_token: 'google_token_simulado' },
+                example: { id_token: 'google_token_simulado' },
+            },
+            'credits': {
+                method: 'GET',
+                path: '/credits',
+                auth: true,
+                title: '/credits',
+                description: 'Obtém créditos do usuário',
+                body: null,
+                example: null,
+            },
+            'get_profile': {
+                method: 'GET',
+                path: '/get_profile',
+                auth: true,
+                title: '/get_profile',
+                description: 'Obtém perfil do usuário',
+                body: null,
+                example: null,
+            },
+            'wallet': {
+                method: 'GET',
+                path: '/wallet',
+                auth: true,
+                title: '/wallet',
+                description: 'Obtém carteira de créditos',
+                body: null,
+                example: null,
+            },
+            'subscription': {
+                method: 'GET',
+                path: '/subscription',
+                auth: true,
+                title: '/subscription',
+                description: 'Obtém assinatura do usuário',
+                body: null,
+                example: null,
+            },
+            'start-free': {
+                method: 'POST',
+                path: '/start-free',
+                auth: true,
+                title: '/start-free 🆓',
+                description: 'Ativa o plano free',
+                body: {},
+                example: {},
+            },
+            'check-free-eligibility': {
+                method: 'GET',
+                path: '/check-free-eligibility',
+                auth: true,
+                title: '/check-free-eligibility',
+                description: 'Verifica elegibilidade para plano free',
+                body: null,
+                example: null,
+            },
+            'create-checkout': {
+                method: 'POST',
+                path: '/create-checkout',
+                auth: true,
+                title: '/create-checkout',
+                description: 'Cria checkout Stripe',
+                body: { package_id: 'pkg_basic', billing_type: 'one_time', coupon_code: 'DESCONTO10' },
+                example: { package_id: 'pkg_basic', billing_type: 'one_time', coupon_code: 'DESCONTO10' },
+            },
+            'validate-coupon': {
+                method: 'POST',
+                path: '/validate-coupon',
+                auth: true,
+                title: '/validate-coupon',
+                description: 'Valida cupom de desconto',
+                body: { coupon_code: 'DESCONTO10', package_id: 'pkg_basic' },
+                example: { coupon_code: 'DESCONTO10', package_id: 'pkg_basic' },
+            },
+            'consume-credit': {
+                method: 'POST',
+                path: '/consume-credit',
+                auth: true,
+                title: '/consume-credit',
+                description: 'Consome créditos do usuário',
+                body: { action_type: 'invoice', reference_id: 'inv_123' },
+                example: { action_type: 'invoice', reference_id: 'inv_123' },
+            },
+            'template-access': {
+                method: 'GET',
+                path: '/template-access',
+                auth: true,
+                title: '/template-access',
+                description: 'Obtém níveis de acesso a templates',
+                body: null,
+                example: null,
+            },
+            'credit-config': {
+                method: 'GET',
+                path: '/credit-config',
+                auth: true,
+                title: '/credit-config',
+                description: 'Obtém configurações de créditos',
+                body: null,
+                example: null,
+            },
+        };
+
+        // --- FUNÇÕES DO SIMULADOR ---
+
+        function selectEndpoint(key) {
+            state.currentEndpoint = key;
+            document.querySelectorAll('.endpoint-btn').forEach(el => el.classList.remove('active'));
+            document.querySelector(`.endpoint-btn[data-endpoint="${key}"]`)?.classList.add('active');
+            renderEndpoint(key);
+        }
+
+        function renderEndpoint(key) {
+            const ep = endpoints[key];
+            if (!ep) return;
+
+            document.getElementById('endpointTitle').textContent = ep.title;
+            document.getElementById('endpointPath').textContent = `${ep.method} /user-api${ep.path}`;
+
+            const badge = document.getElementById('authBadge');
+            badge.textContent = ep.auth ? '🔒 Autenticado' : '🔓 Público';
+            badge.style.background = ep.auth ? '#1a6fb0' : '#1f8b4c';
+
+            const container = document.getElementById('requestBodyContainer');
+
+            if (ep.method === 'GET' || !ep.body) {
+                container.innerHTML = `
+                    <div class="text-muted" style="padding:8px 0;">
+                        <span class="pill">${ep.method}</span> Este endpoint não requer corpo de requisição.
+                        ${ep.description ? `<br><span style="font-size:13px;color:#8896a6;">${ep.description}</span>` : ''}
+                    </div>
+                `;
+            } else {
+                const jsonStr = JSON.stringify(ep.body, null, 2);
+                container.innerHTML = `
+                    <div class="form-group">
+                        <label>📦 Corpo da Requisição (JSON)</label>
+                        <textarea id="requestBody">${jsonStr}</textarea>
+                    </div>
+                    <div class="text-muted" style="font-size:12px;margin-top:-8px;">
+                        ${ep.description || ''}
+                    </div>
+                `;
+            }
+
+            // Atualizar botão de exemplo
+            const exampleBtn = document.querySelector('#sendBtn + button');
+            if (exampleBtn) {
+                exampleBtn.style.display = ep.example ? 'inline-block' : 'none';
+            }
+        }
+
+        function loadExample() {
+            const ep = endpoints[state.currentEndpoint];
+            if (!ep || !ep.example) return;
+            const textarea = document.getElementById('requestBody');
+            if (textarea) {
+                textarea.value = JSON.stringify(ep.example, null, 2);
+            }
+        }
+
+        // --- SIMULAÇÃO DE RESPOSTAS ---
+
+        function simulateResponse(endpointKey, body, token) {
+            const ep = endpoints[endpointKey];
+            const method = ep.method;
+
+            // Verificar autenticação
+            if (ep.auth && !state.token) {
+                return { status: 401, data: { error: 'Unauthorized' } };
+            }
+
+            switch (endpointKey) {
+                case 'packages':
+                    return {
+                        status: 200,
+                        data: {
+                            packages: state.packages,
+                            free_plan: state.packages.find(p => p.is_free) || null,
+                            paid_plans: state.packages.filter(p => !p.is_free),
+                            has_free_plan: state.packages.some(p => p.is_free)
+                        }
+                    };
+
+                case 'register': {
+                    const { email, password, full_name, phone } = body;
+                    if (!email || !password || !full_name) {
+                        return { status: 400, data: { error: 'Missing required fields' } };
+                    }
+                    if (state.users.find(u => u.email === email)) {
+                        return { status: 409, data: { error: 'Email already registered' } };
+                    }
+                    const newUser = {
+                        id: 'user_' + Date.now(),
+                        email,
+                        password,
+                        full_name,
+                        email_verified: true,
+                        phone_verified: !!phone,
+                        credits: 0,
+                    };
+                    state.users.push(newUser);
+                    return {
+                        status: 200,
+                        data: { success: true, user: { id: newUser.id, email: newUser.email },
+                            message: 'Account created successfully' }
+                    };
+                }
+
+                case 'login': {
+                    const { email, password } = body;
+                    if (!email || !password) {
+                        return { status: 400, data: { error: 'Missing credentials' } };
+                    }
+                    const user = state.users.find(u => u.email === email && u.password === password);
+                    if (!user) {
+                        return { status: 401, data: { error: 'Invalid credentials' } };
+                    }
+                    const token = 'token_' + Date.now();
+                    state.token = token;
+                    state.userId = user.id;
+                    state.userEmail = user.email;
+                    state.isAuthenticated = true;
+                    return {
+                        status: 200,
+                        data: {
+                            access_token: token,
+                            refresh_token: 'refresh_' + Date.now(),
+                            user: {
+                                id: user.id,
+                                email: user.email,
+                                email_verified: user.email_verified || false,
+                                phone_verified: user.phone_verified || false,
+                            }
+                        }
+                    };
+                }
+
+                case 'send-signup-otp': {
+                    const { email } = body;
+                    if (!email) return { status: 400, data: { error: 'Email is required' } };
+                    if (state.users.find(u => u.email === email)) {
+                        return { status: 409, data: { error: 'This email is already registered' } };
+                    }
+                    const otp = String(Math.floor(100000 + Math.random() * 900000));
+                    state.otps.push({ email, otp, used: false, purpose: 'signup', expires_at: Date.now() + 600000 });
+                    return { status: 200, data: { success: true, message: 'OTP sent', otp_simulado: otp } };
+                }
+
+                case 'verify-otp': {
+                    const { email, otp } = body;
+                    if (!email || !otp) return { status: 400, data: { error: 'Email and OTP are required' } };
+                    const record = state.otps.find(o => o.email === email && o.otp === otp && !o.used && o.expires_at > Date
+                    .now());
+                    if (!record) return { status: 400, data: { error: 'Invalid or expired code' } };
+                    record.used = true;
+                    return { status: 200, data: { success: true, message: 'OTP verified', purpose: record.purpose ||
+                            'generic' } };
+                }
+
+                case 'forgot-password': {
+                    const { email } = body;
+                    if (!email) return { status: 400, data: { error: 'Email is required' } };
+                    const user = state.users.find(u => u.email === email);
+                    if (user) {
+                        const otp = String(Math.floor(100000 + Math.random() * 900000));
+                        state.otps.push({ email, otp, used: false, purpose: 'password_reset', expires_at: Date.now() +
+                                600000 });
+                        return { status: 200, data: { success: true, message: 'If an account exists, a reset code was sent',
+                                otp_simulado: otp } };
+                    }
+                    return { status: 200, data: { success: true, message: 'If an account exists, a reset code was sent' } };
+                }
+
+                case 'reset-password': {
+                    const { email, otp, password } = body;
+                    if (!email || !otp || !password) return { status: 400, data: { error: 'Email, OTP and password are required' } };
+                    const record = state.otps.find(o => o.email === email && o.otp === otp && !o.used && o.purpose ===
+                        'password_reset' && o.expires_at > Date.now());
+                    if (!record) return { status: 400, data: { error: 'Invalid or expired code' } };
+                    record.used = true;
+                    const user = state.users.find(u => u.email === email);
+                    if (user) { user.password = password; }
+                    return { status: 200, data: { success: true, message: 'Password updated successfully' } };
+                }
+
+                case 'google': {
+                    const { id_token } = body;
+                    if (!id_token) return { status: 400, data: { error: 'Google id_token is required' } };
+                    const email = 'google_' + Date.now() + '@user.com';
+                    const user = state.users.find(u => u.email === email);
+                    let isNewUser = false;
+                    let targetUser;
+                    if (user) {
+                        targetUser = user;
+                    } else {
+                        targetUser = { id: 'user_' + Date.now(), email, password: 'google_auto', full_name: 'Google User',
+                            email_verified: true, phone_verified: false, credits: 0 };
+                        state.users.push(targetUser);
+                        isNewUser = true;
+                    }
+                    const token = 'token_google_' + Date.now();
+                    state.token = token;
+                    state.userId = targetUser.id;
+                    state.userEmail = targetUser.email;
+                    state.isAuthenticated = true;
+                    return {
+                        status: 200,
+                        data: {
+                            access_token: token,
+                            refresh_token: 'refresh_google_' + Date.now(),
+                            user: { id: targetUser.id, email: targetUser.email },
+                            is_new_user: isNewUser,
+                        }
+                    };
+                }
+
+                case 'credits': {
+                    const user = state.users.find(u => u.id === state.userId);
+                    return { status: 200, data: { credits: user?.credits || 0 } };
+                }
+
+                case 'get_profile': {
+                    const user = state.users.find(u => u.id === state.userId);
+                    if (!user) return { status: 404, data: { status: false, message: 'Profile not found', data: null } };
+                    return {
+                        status: 200,
+                        data: {
+                            status: true,
+                            message: 'Success',
+                            data: {
+                                id: user.id,
+                                email: user.email,
+                                full_name: user.full_name,
+                                email_verified: user.email_verified || false,
+                                phone_verified: user.phone_verified || false,
+                            }
+                        }
+                    };
+                }
+
+                case 'wallet': {
+                    let wallet = state.wallets.find(w => w.user_id === state.userId);
+                    if (!wallet) {
+                        wallet = { user_id: state.userId, invoice_remaining: 10, estimate_remaining: 5,
+                            ai_estimate_remaining: 3, invoice_unlimited: false, estimate_unlimited: false,
+                            ai_estimate_unlimited: false };
+                        state.wallets.push(wallet);
+                    }
+                    return { status: 200, data: { wallet } };
+                }
+
+                case 'subscription': {
+                    const sub = state.subscriptions.find(s => s.user_id === state.userId && s.is_active);
+                    return { status: 200, data: { subscription: sub || null } };
+                }
+
+                case 'start-free': {
+                    // Verifica elegibilidade
+                    const existingFree = state.subscriptions.find(s => s.user_id === state.userId && s.is_free);
+                    if (existingFree && existingFree.status === 'active') {
+                        return { status: 400, data: { error: 'You already have an active free plan' } };
+                    }
+                    const usedFree = state.subscriptions.find(s => s.user_id === state.userId && s.is_free);
+                    if (usedFree) {
+                        return { status: 400, data: { error: 'Free plan already used. This is a one-time offer.' } };
+                    }
+                    const activePaid = state.subscriptions.find(s => s.user_id === state.userId && !s.is_free && s
+                    .is_active);
+                    if (activePaid) {
+                        return { status: 400, data: { error: 'You have an active paid plan. Free plan is not available.' } };
+                    }
+
+                    const freePkg = state.packages.find(p => p.is_free);
+                    if (!freePkg) return { status: 404, data: { error: 'Free plan not available' } };
+
+                    // Ativar free
+                    const sub = {
+                        id: 'sub_' + Date.now(),
+                        user_id: state.userId,
+                        package_id: freePkg.id,
+                        billing_type: 'free',
+                        template_tier: freePkg.template_tier || 'basic',
+                        is_active: true,
+                        is_free: true,
+                        is_trial: false,
+                        status: 'active',
+                        start_date: new Date().toISOString(),
+                        expiry_date: new Date(Date.now() + 365 * 86400000).toISOString(),
+                    };
+                    state.subscriptions.push(sub);
+
+                    // Atualizar wallet
+                    let wallet = state.wallets.find(w => w.user_id === state.userId);
+                    if (wallet) {
+                        wallet.invoice_remaining += freePkg.invoice_credits || 0;
+                        wallet.estimate_remaining += freePkg.estimate_credits || 0;
+                        wallet.ai_estimate_remaining += freePkg.ai_estimate_credits || 0;
+                    } else {
+                        state.wallets.push({
+                            user_id: state.userId,
+                            invoice_remaining: freePkg.invoice_credits || 0,
+                            estimate_remaining: freePkg.estimate_credits || 0,
+                            ai_estimate_remaining: freePkg.ai_estimate_credits || 0,
+                            invoice_unlimited: false,
+                            estimate_unlimited: false,
+                            ai_estimate_unlimited: false,
+                        });
+                    }
+
+                    const totalCredits = (freePkg.invoice_credits || 0) + (freePkg.estimate_credits || 0) + (freePkg
+                        .ai_estimate_credits || 0);
+                    const user = state.users.find(u => u.id === state.userId);
+                    if (user) user.credits = (user.credits || 0) + totalCredits;
+
+                    return {
+                        status: 200,
+                        data: {
+                            success: true,
+                            message: 'Free plan activated successfully! 🎉',
+                            subscription: {
+                                id: sub.id,
+                                package_name: freePkg.name,
+                                template_tier: freePkg.template_tier,
+                                expiry_date: sub.expiry_date,
+                            },
+                            credits: {
+                                total: totalCredits,
+                                invoice: freePkg.invoice_credits || 0,
+                                estimate: freePkg.estimate_credits || 0,
+                                ai_estimate: freePkg.ai_estimate_credits || 0,
+                            }
+                        }
+                    };
+                }
+
+                case 'check-free-eligibility': {
+                    const freeHistory = state.subscriptions.filter(s => s.user_id === state.userId && s.is_free);
+                    const hasActiveFree = freeHistory.some(s => s.status === 'active');
+                    const hasUsedFreeBefore = freeHistory.length > 0;
+                    const hasPaidPlan = state.subscriptions.some(s => s.user_id === state.userId && !s.is_free && s
+                        .is_active);
+                    const eligible = !hasActiveFree && !hasPaidPlan && !hasUsedFreeBefore;
+                    return {
+                        status: 200,
+                        data: {
+                            eligible,
+                            has_active_free: hasActiveFree,
+                            has_active_paid: hasPaidPlan,
+                            used_free_before: hasUsedFreeBefore,
+                            can_activate: eligible,
+                            message: eligible ? 'You are eligible for the free plan' : hasActiveFree ?
+                                'You already have an active free plan' : hasPaidPlan ?
+                                'You have an active paid plan' : 'You have already used the free plan.',
+                            current_status: {
+                                free_plan: freeHistory.length > 0 ? {
+                                    id: freeHistory[0].id,
+                                    status: freeHistory[0].status,
+                                    activated_at: freeHistory[0].start_date,
+                                    expires_at: freeHistory[0].expiry_date,
+                                } : null,
+                                paid_plan: null,
+                                used_free_before: hasUsedFreeBefore,
+                            }
+                        }
+                    };
+                }
+
+                case 'create-checkout': {
+                    const { package_id, billing_type = 'one_time', coupon_code } = body;
+                    if (!package_id) return { status: 400, data: { error: 'Invalid package_id' } };
+                    const pkg = state.packages.find(p => p.id === package_id && p.is_active);
+                    if (!pkg) return { status: 400, data: { error: 'Invalid or inactive package' } };
+
+                    let discountPercent = 0;
+                    if (coupon_code) {
+                        const coupon = state.coupons.find(c => c.code === coupon_code.toUpperCase() && c.is_active);
+                        if (coupon && (!coupon.usage_limit || coupon.usage_count < coupon.usage_limit)) {
+                            discountPercent = coupon.discount_percent;
+                        }
+                    }
+
+                    const originalPrice = pkg.price;
+                    const discountAmount = Math.round((originalPrice * discountPercent) / 100 * 100) / 100;
+                    const finalPrice = Math.max(0, Math.round((originalPrice - discountAmount) * 100) / 100);
+
+                    const sessionId = 'cs_' + Date.now();
+                    state.transactions.push({
+                        id: 'txn_' + Date.now(),
+                        user_id: state.userId,
+                        package_id: pkg.id,
+                        amount: finalPrice,
+                        original_price: originalPrice,
+                        discount_amount: discountAmount,
+                        status: 'pending',
+                        stripe_payment_intent_id: sessionId,
+                    });
+
+                    return {
+                        status: 200,
+                        data: {
+                            checkout_url: 'https://checkout.stripe.com/simulado/' + sessionId,
+                            session_id: sessionId,
+                            original_price: originalPrice,
+                            discount_percent: discountPercent,
+                            discount_amount: discountAmount,
+                            final_price: finalPrice,
+                        }
+                    };
+                }
+
+                case 'validate-coupon': {
+                    const { coupon_code, package_id } = body;
+                    if (!coupon_code) return { status: 400, data: { error: 'Missing coupon_code' } };
+                    const coupon = state.coupons.find(c => c.code === coupon_code.toUpperCase() && c.is_active);
+                    if (!coupon) return { status: 200, data: { valid: false, error: 'Invalid coupon code' } };
+                    if (coupon.usage_limit && coupon.usage_count >= coupon.usage_limit) {
+                        return { status: 200, data: { valid: false, error: 'Coupon usage limit reached' } };
+                    }
+                    const result = { valid: true, discount_percent: coupon.discount_percent };
+                    if (package_id) {
+                        const pkg = state.packages.find(p => p.id === package_id);
+                        if (pkg) {
+                            const { originalPrice, discountAmount, finalPrice } = calculatePricing(pkg.price, coupon
+                                .discount_percent);
+                            result.price_preview = { original_price: originalPrice, discount_amount: discountAmount,
+                                final_price: finalPrice, package_name: pkg.name };
+                        }
+                    }
+                    return { status: 200, data: result };
+                }
+
+                case 'consume-credit': {
+                    const { action_type, reference_id } = body;
+                    if (!action_type) return { status: 400, data: { error: 'Missing action_type' } };
+                    const validActions = ['invoice', 'estimate', 'ai_estimate'];
+                    if (!validActions.includes(action_type)) return { status: 400, data: { error: 'Invalid action type' } };
+
+                    const costMap = { invoice: 1, estimate: 1, ai_estimate: 2 };
+                    const cost = costMap[action_type] || 1;
+
+                    const user = state.users.find(u => u.id === state.userId);
+                    if (!user || (user.credits || 0) < cost) {
+                        return { status: 402, data: { error: 'Insufficient credits', can_generate: false, required: cost,
+                                available: user?.credits || 0 } };
+                    }
+
+                    user.credits = (user.credits || 0) - cost;
+
+                    // Atualizar wallet também
+                    const wallet = state.wallets.find(w => w.user_id === state.userId);
+                    if (wallet) {
+                        const bucketMap = {
+                            invoice: 'invoice_remaining',
+                            estimate: 'estimate_remaining',
+                            ai_estimate: 'ai_estimate_remaining',
+                        };
+                        const bucket = bucketMap[action_type];
+                        if (bucket && wallet[bucket] !== undefined) {
+                            wallet[bucket] = Math.max(0, wallet[bucket] - cost);
+                        }
+                    }
+
+                    return {
+                        status: 200,
+                        data: {
+                            success: true,
+                            credits_deducted: cost,
+                            remaining_credits: user.credits,
+                            can_generate: user.credits >= cost,
+                        }
+                    };
+                }
+
+                case 'template-access': {
+                    const sub = state.subscriptions.find(s => s.user_id === state.userId && s.is_active);
+                    const tier = sub?.template_tier || 'basic';
+                    const access = {
+                        basic: ['basic'],
+                        professional: ['basic', 'professional'],
+                        enterprise: ['basic', 'professional', 'enterprise'],
+                    };
+                    return { status: 200, data: { tier, templates: access[tier] || ['basic'] } };
+                }
+
+                case 'credit-config': {
+                    return {
+                        status: 200,
+                        data: {
+                            config: [
+                                { action_type: 'invoice', credit_cost: 1, is_active: true },
+                                { action_type: 'estimate', credit_cost: 1, is_active: true },
+                                { action_type: 'ai_estimate', credit_cost: 2, is_active: true },
+                            ]
+                        }
+                    };
+                }
+
+                default:
+                    return { status: 404, data: { error: 'Not found' } };
+            }
+        }
+
+        function calculatePricing(price, discountPercent) {
+            const originalPrice = Number(price);
+            const discountAmount = Math.round((originalPrice * discountPercent) / 100 * 100) / 100;
+            const finalPrice = Math.max(0, Math.round((originalPrice - discountAmount) * 100) / 100);
+            return { originalPrice, discountAmount, finalPrice };
+        }
+
+        // --- ENVIAR REQUISIÇÃO ---
+
+        function sendRequest() {
+            const btn = document.getElementById('sendBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Enviando...';
+
+            const ep = endpoints[state.currentEndpoint];
+            let body = null;
+            const textarea = document.getElementById('requestBody');
+            if (textarea) {
+                try {
+                    body = JSON.parse(textarea.value);
+                } catch (e) {
+                    addLog('❌ Erro: JSON inválido');
+                    btn.disabled = false;
+                    btn.innerHTML = '🚀 Enviar Requisição';
+                    return;
+                }
+            }
+
+            // Simular delay de rede
+            const startTime = Date.now();
+            setTimeout(() => {
+                const result = simulateResponse(state.currentEndpoint, body, state.token);
+                const elapsed = Date.now() - startTime;
+
+                // Atualizar UI
+                const area = document.getElementById('responseArea');
+                const statusClass = result.status >= 200 && result.status < 300 ? 'success' : 'error';
+                const dataStr = JSON.stringify(result.data, null, 2);
+                area.innerHTML = `
+                    <div>
+                        <span class="status ${statusClass}">${result.status}</span>
+                        <span style="color:#8896a6;font-size:12px;margin-left:8px;">${elapsed}ms</span>
+                    </div>
+                    <div style="margin-top:8px;">${dataStr}</div>
+                `;
+
+                document.getElementById('responseTime').textContent = `${elapsed}ms`;
+
+                // Log
+                const logStatus = result.status >= 200 && result.status < 300 ? 'success' : 'error';
+                addLog(`${ep.method} ${ep.path} → ${result.status} ${elapsed}ms`, logStatus);
+
+                // Atualizar token display
+                if (result.data?.access_token) {
+                    state.token = result.data.access_token;
+                    state.userId = result.data.user?.id || null;
+                    state.userEmail = result.data.user?.email || null;
+                    state.isAuthenticated = true;
+                    updateStatusDisplay();
+                }
+
+                btn.disabled = false;
+                btn.innerHTML = '🚀 Enviar Requisição';
+            }, 300 + Math.random() * 400);
+        }
+
+        // --- UI HELPERS ---
+
+        function updateStatusDisplay() {
+            const tokenEl = document.getElementById('tokenDisplay');
+            const userEl = document.getElementById('userDisplay');
+            const pkgEl = document.getElementById('packageCount');
+
+            tokenEl.textContent = state.token ? `${state.token.substring(0, 16)}...` : 'Nenhum';
+            tokenEl.style.color = state.token ? '#4caf50' : '#8896a6';
+            userEl.textContent = state.userEmail || 'Não autenticado';
+            userEl.style.color = state.userEmail ? '#4caf50' : '#8896a6';
+            pkgEl.textContent = state.packages.length;
+        }
+
+        function addLog(message, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            const logEntry = { time, message, type };
+            state.logs.push(logEntry);
+            renderLogs();
+        }
+
+        function renderLogs() {
+            const container = document.getElementById('logsContainer');
+            const countEl = document.getElementById('logCount');
+            countEl.textContent = `${state.logs.length} entradas`;
+
+            if (state.logs.length === 0) {
+                container.innerHTML = `<div class="log-entry text-muted">Nenhum log ainda.</div>`;
+                return;
+            }
+
+            const html = state.logs.map(log => {
+                const isError = log.type === 'error';
+                const isSuccess = log.type === 'success';
+                const color = isError ? '#ef5350' : isSuccess ? '#4caf50' : '#8896a6';
+                return `
+                    <div class="log-entry">
+                        <span class="time">[${log.time}]</span>
+                        <span style="color:${color}">${log.message}</span>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function clearLogs() {
+            state.logs = [];
+            renderLogs();
+        }
+
+        function resetState() {
+            state.token = null;
+            state.userId = null;
+            state.userEmail = null;
+            state.isAuthenticated = false;
+            state.logs = [];
+            state.subscriptions = [];
+            state.wallets = [];
+            state.otps = [];
+            state.transactions = [];
+            updateStatusDisplay();
+            renderLogs();
+            document.getElementById('responseArea').innerHTML = `<span class="text-muted">Aguardando requisição...</span>`;
+            document.getElementById('responseTime').textContent = '';
+            selectEndpoint('packages');
+            addLog('🔄 Estado resetado');
+        }
+
+        // --- INIT ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            selectEndpoint('packages');
+            updateStatusDisplay();
+
+            // Atalho: Enter para enviar
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    sendRequest();
+                }
+            });
+        });
+
+        // Tornar funções globais para os buttons onclick
+        window.selectEndpoint = selectEndpoint;
+        window.sendRequest = sendRequest;
+        window.loadExample = loadExample;
+        window.clearLogs = clearLogs;
+        window.resetState = resetState;
+    </script>
+
+</body>
+</html>

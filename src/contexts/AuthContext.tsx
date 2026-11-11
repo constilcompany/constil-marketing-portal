@@ -44,6 +44,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ]);
       if (roleRes.data) setRole(roleRes.data);
       if (profileRes.data) setProfile(profileRes.data);
+    } catch (err) {
+      console.warn("Failed to fetch user role or profile:", err);
     } finally {
       fetchingRef.current = false;
     }
@@ -103,6 +105,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (session?.user) {
         fetchRoleAndProfile(session.user.id);
       }
+      setLoading(false);
+    }).catch((err) => {
+      console.warn("Session restore failed, defaulting to logged-out state:", err);
       setLoading(false);
     });
 

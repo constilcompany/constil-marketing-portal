@@ -1957,6 +1957,75 @@ export type Database = {
         }
         Relationships: []
       }
+      chatbot_leads: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          messages: Json
+          name: string | null
+          page_url: string | null
+          phone: string | null
+          referrer: string | null
+          timezone: string | null
+          trade: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          messages?: Json
+          name?: string | null
+          page_url?: string | null
+          phone?: string | null
+          referrer?: string | null
+          timezone?: string | null
+          trade?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          messages?: Json
+          name?: string | null
+          page_url?: string | null
+          phone?: string | null
+          referrer?: string | null
+          timezone?: string | null
+          trade?: string | null
+        }
+        Relationships: []
+      }
+      newsleads: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string | null
+          page_url: string | null
+          phone: string | null
+          timezone: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name?: string | null
+          page_url?: string | null
+          phone?: string | null
+          timezone?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string | null
+          page_url?: string | null
+          phone?: string | null
+          timezone?: string | null
+        }
+        Relationships: []
+      }
       taxes: {
         Row: {
           created_at: string

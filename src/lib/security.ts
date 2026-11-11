@@ -65,7 +65,7 @@ export function getSafeErrorMessage(error: unknown): string {
  * Build secure API URL for edge functions
  */
 export function getEdgeFunctionUrl(path: string): string {
-  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || 'avppbvsxayehguepyjkb';
   if (!projectId) throw new Error('Configuration error');
   return `https://${projectId}.supabase.co/functions/v1/${path}`;
 }

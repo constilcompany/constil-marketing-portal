@@ -30,6 +30,8 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import MySubscriptionPage from "./pages/MySubscriptionPage";
 import SupportFormPage from "./pages/SupportFormPage";
 import SupportQueriesPage from "./pages/SupportQueriesPage";
+import NewsleadsPage from "./pages/NewsleadsPage";
+import ChatbotLeadsPage from "./pages/ChatbotLeadsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -67,6 +69,8 @@ const App = () => (
             <Route path="/dashboard/profile" element={<ProtectedRoute allowedRoles={['influencer']}><ProfilePage /></ProtectedRoute>} />
             <Route path="/dashboard/my-subscription" element={<ProtectedRoute><MySubscriptionPage /></ProtectedRoute>} />
             <Route path="/dashboard/support-queries" element={<ProtectedRoute allowedRoles={['admin']}><SupportQueriesPage /></ProtectedRoute>} />
+            <Route path="/dashboard/newsleads" element={<ProtectedRoute allowedRoles={['admin']}><NewsleadsPage /></ProtectedRoute>} />
+            <Route path="/dashboard/chatbot-leads" element={<ProtectedRoute allowedRoles={['admin']}><ChatbotLeadsPage /></ProtectedRoute>} />
             <Route path="/support" element={<SupportFormPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

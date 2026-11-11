@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import {
   Zap, LayoutDashboard, Users, Settings, Ticket, DollarSign,
   BarChart3, Wallet, UserPlus, LogOut, ChevronLeft, ChevronRight, Package, SlidersHorizontal,
-  CreditCard, CalendarCheck, MessageSquare,
+  CreditCard, CalendarCheck, MessageSquare, Bot, Mail,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,8 @@ const adminNav: NavItem[] = [
   { label: 'Payment Logs', path: '/dashboard/payment-logs', icon: CreditCard },
   { label: 'Coupons', path: '/dashboard/coupons', icon: Ticket },
   { label: 'Payouts', path: '/dashboard/payouts', icon: DollarSign },
+  { label: 'Chatbot Leads', path: '/dashboard/chatbot-leads', icon: Bot },
+  { label: 'Newsleads', path: '/dashboard/newsleads', icon: Mail },
   { label: 'Support Queries', path: '/dashboard/support-queries', icon: MessageSquare },
   { label: 'Settings', path: '/dashboard/settings', icon: Settings },
 ];
